@@ -353,3 +353,17 @@
     font-size: 28px;
   }
 }
+
+/* Signed-in name shown in the login menu */
+
+.login-menu-user {
+  display: block;
+
+  padding: 8px 12px 10px;
+  margin-bottom: 4px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  color: #6b7280;
+  font-size: 13px;
+}
