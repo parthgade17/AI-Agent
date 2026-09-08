@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AuthModal from './AuthModal'
+import StudentDashboard from './StudentDashboard'
 import type { AuthTarget } from './AuthModal'
 import type { Session } from '../api'
 import './LandingPage.css'
@@ -11,6 +12,7 @@ function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [showStudentDashboard, setShowStudentDashboard] = useState(false)
 
   function openLogin(target: AuthTarget) {
     setMenuOpen(false)
@@ -23,7 +25,9 @@ function LandingPage() {
     { id: 'achievements' as Tab, label: 'Student Achievements' },
     { id: 'events' as Tab, label: 'Upcoming Events' },
   ]
-
+if (true) {
+  return <StudentDashboard />
+}
   return (
     <main className="landing-page">
 
@@ -176,6 +180,9 @@ function LandingPage() {
           onSuccess={(s) => {
             setSession(s)
             setAuthTarget(null)
+            if (s.role === 'student') {
+        setShowStudentDashboard(true)
+      }
           }}
         />
       )}
