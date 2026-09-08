@@ -1,0 +1,572 @@
+.lms-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  box-sizing: border-box;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.lms-section * {
+  box-sizing: border-box;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.lms-section-header {
+  margin-bottom: 32px;
+}
+
+.lms-section-label {
+  display: block;
+  margin-bottom: 12px;
+
+  color: #969ca6;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  line-height: 1.5;
+}
+
+.lms-section-header h2 {
+  margin: 0 0 12px;
+
+  color: #20242c;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.4px;
+}
+
+.lms-section-header p {
+  max-width: 700px;
+  margin: 0;
+
+  color: #656b74;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* =========================
+   LMS OVERVIEW
+========================= */
+
+.lms-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+
+  margin-bottom: 24px;
+  padding: 30px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+
+  background: #eef3f8;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+
+  overflow: hidden;
+}
+
+.lms-overview-content {
+  min-width: 0;
+}
+
+.lms-overview-label {
+  display: block;
+  margin-bottom: 8px;
+
+  color: #969ca6;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.lms-overview-content h3 {
+  margin: 0 0 8px;
+
+  color: #20242c;
+
+  font-size: 25px;
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+.lms-overview-content p {
+  max-width: 650px;
+  margin: 0;
+
+  color: #656b74;
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.lms-semester-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 70px;
+  height: 70px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  color: #20242c;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================
+   LMS GRID
+========================= */
+
+.lms-module-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+/* =========================
+   LMS CARD
+========================= */
+
+.lms-card {
+  position: relative;
+
+  min-width: 0;
+
+  padding: 28px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+
+  background: #f3f0ea;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+
+  overflow: hidden;
+}
+
+.lms-card:nth-child(2) {
+  background: #edf3ed;
+}
+
+.lms-card:nth-child(3) {
+  background: #f2eef5;
+}
+
+.lms-card:nth-child(4) {
+  background: #eaf0f5;
+}
+
+.lms-card:nth-child(5) {
+  background: #f1f2f5;
+}
+
+.lms-card:nth-child(6) {
+  background: #eef3f8;
+}
+
+.lms-card::after {
+  content: '';
+
+  position: absolute;
+
+  width: 150px;
+  height: 150px;
+
+  right: -75px;
+  bottom: -75px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.38);
+
+  pointer-events: none;
+}
+
+.lms-card-number {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  margin-bottom: 20px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.8);
+
+  color: #20242c;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lms-card h3 {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 10px;
+
+  color: #20242c;
+
+  font-size: 19px;
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+.lms-card > p {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 22px;
+
+  color: #656b74;
+
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* =========================
+   COURSE LIST
+========================= */
+
+.lms-course-list {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.lms-course-item {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  padding: 13px 15px;
+
+  border: 1px solid rgba(32, 36, 44, 0.07);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.lms-course-item strong {
+  color: #20242c;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  line-height: 1.5;
+}
+
+.lms-course-item span {
+  color: #969ca6;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+/* =========================
+   STATUS LIST
+========================= */
+
+.lms-status-list {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 0;
+}
+
+.lms-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 15px 0;
+
+  border-bottom: 1px solid rgba(32, 36, 44, 0.08);
+}
+
+.lms-status-item:last-child {
+  border-bottom: none;
+}
+
+.lms-status-item span {
+  color: #656b74;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.lms-status-item strong {
+  color: #20242c;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* =========================
+   ATTENDANCE
+========================= */
+
+.lms-attendance {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+
+  margin-top: 10px;
+  padding: 18px;
+
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.lms-attendance-value {
+  color: #20242c;
+
+  font-size: 30px;
+  font-weight: 700;
+
+  line-height: 1;
+}
+
+.lms-attendance span {
+  color: #656b74;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  line-height: 1.5;
+}
+
+/* =========================
+   ACTIVITY CARD
+========================= */
+
+.lms-card-wide {
+  grid-column: 1 / -1;
+}
+
+.lms-activity-list {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 0;
+}
+
+.lms-activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 15px 0;
+
+  border-bottom: 1px solid rgba(32, 36, 44, 0.08);
+}
+
+.lms-activity-item:last-child {
+  border-bottom: none;
+}
+
+.lms-activity-item div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.lms-activity-item strong {
+  color: #20242c;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  line-height: 1.5;
+}
+
+.lms-activity-item span {
+  color: #969ca6;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+.lms-activity-item small {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.7);
+
+  color: #20242c;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.lms-card-button,
+.lms-primary-button {
+  position: relative;
+  z-index: 3;
+
+  border-radius: 10px;
+
+  padding: 11px 17px;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lms-card-button {
+  border: 1px solid rgba(32, 36, 44, 0.15);
+
+  background: rgba(255, 255, 255, 0.7);
+
+  color: #20242c;
+}
+
+.lms-card-button:hover {
+  background: #ffffff;
+
+  transform: translateY(-1px);
+}
+
+.lms-primary-button {
+  border: 1px solid #20242c;
+
+  background: #20242c;
+
+  color: #ffffff;
+}
+
+.lms-primary-button:hover {
+  background: #343943;
+
+  transform: translateY(-1px);
+}
+
+/* =========================
+   RESPONSIVE TABLET
+========================= */
+
+@media (max-width: 800px) {
+  .lms-section {
+    padding: 32px 20px 50px;
+  }
+
+  .lms-section-header h2 {
+    font-size: 28px;
+  }
+
+  .lms-module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lms-card-wide {
+    grid-column: auto;
+  }
+}
+
+/* =========================
+   RESPONSIVE MOBILE
+========================= */
+
+@media (max-width: 480px) {
+  .lms-section {
+    padding: 26px 16px 40px;
+  }
+
+  .lms-section-header h2 {
+    font-size: 25px;
+  }
+
+  .lms-section-header p {
+    font-size: 14px;
+  }
+
+  .lms-overview {
+    align-items: flex-start;
+
+    padding: 22px;
+
+    gap: 18px;
+  }
+
+  .lms-overview-content h3 {
+    font-size: 21px;
+  }
+
+  .lms-semester-badge {
+    width: 58px;
+    height: 58px;
+
+    font-size: 12px;
+  }
+
+  .lms-card {
+    padding: 22px;
+  }
+
+  .lms-activity-item {
+    align-items: flex-start;
+  }
+}
