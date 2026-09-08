@@ -18,10 +18,7 @@ body {
   font-family: Inter, Arial, sans-serif;
 }
 
-button,
-input,
-textarea,
-select {
+button {
   font: inherit;
 }
 
@@ -53,7 +50,7 @@ select {
 
 .university-section img {
   width: 445px;
-  max-width: 100%;
+  max-width: 80%;
   height: auto;
 
   object-fit: contain;
@@ -63,12 +60,22 @@ select {
 }
 
 .university-section img:hover {
-  transform: scale(1.03);
+  transform:
+    scale(1.03);
 }
 
+.cursor-grid-wrapper {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 0;
+}
 
 /* =====================================================
-   HERO / DEPARTMENT
+   HERO
 ===================================================== */
 
 .department-section {
@@ -81,7 +88,8 @@ select {
   align-items: center;
   justify-content: center;
 
-  padding: 60px 40px;
+  padding:
+    60px 40px;
 
   text-align: center;
 
@@ -100,9 +108,6 @@ select {
   overflow: hidden;
 }
 
-
-/* subtle dark overlay */
-
 .department-section::before {
   content: "";
 
@@ -113,25 +118,96 @@ select {
     radial-gradient(
       circle at center,
       rgba(255, 255, 255, 0.04),
-      transparent 55%
+      transparent 60%
     );
 
   pointer-events: none;
 }
 
-
 /* =====================================================
-   REACT BITS DECRYPTED TEXT
+   MAIN TAB HEADINGS
 ===================================================== */
 
-.department-section {
+.content-section {
+  width: 100%;
+  min-height: 80vh;
+
+  padding: 140px 30px 120px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: #f5f6f8;
+
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.content-heading {
+  width: min(1200px, 90%);
+
+  margin: 0 auto;
+
+  text-align: center;
+}
+
+.content-heading span {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #969ca6;
+
+  font-size: 10px;
+
+  letter-spacing: 3px;
+
+  text-transform: uppercase;
+}
+
+.content-heading h2 {
+  margin: 0;
+
+  color: #151922;
+
+  font-size: clamp(60px, 9vw, 120px);
+
+  font-weight: 500;
+
+  line-height: 0.95;
+
+  letter-spacing: -4px;
+}
+
+
+/* Different subtle backgrounds */
+
+.faculty-section {
+  background: #f2f4f7;
+}
+
+.achievements-section {
+  background: #f4f0ea;
+}
+
+.events-section {
+  background: #eef2f5;
+}
+
+/* =====================================================
+   DECRYPTED TEXT
+===================================================== */
+
+.department-title {
   position: relative;
 
   z-index: 3;
 
-  width: min(1200px, 95%);
+  width:
+    min(1200px, 95%);
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -140,13 +216,13 @@ select {
   color: #ffffff;
 
   font-size:
-    clamp(40px, 4vw, 84px);
+    clamp(50px, 8vw, 10px);
 
-  font-weight: 300;
+  font-weight: 600;
 
   line-height: 1.05;
 
-  letter-spacing: -2.8px;
+  letter-spacing: -3px;
 
   text-shadow:
     0 5px 25px rgba(0, 0, 0, 0.5);
@@ -154,20 +230,24 @@ select {
 
 
 /*
-  React Bits can render spans/divs internally.
-  Make all generated characters inherit the
-  hero typography.
+   Make React Bits generated elements
+   inherit our large typography.
 */
 
 .department-title *,
 .department-title h1,
 .department-title span,
 .department-title div {
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  line-height: inherit !important;
-  letter-spacing: inherit !important;
   font-family: inherit !important;
+
+  font-size: inherit !important;
+
+  font-weight: inherit !important;
+
+  line-height: inherit !important;
+
+  letter-spacing: inherit !important;
+
   color: #ffffff !important;
 }
 
@@ -182,12 +262,15 @@ select {
   left: 50%;
   bottom: 24px;
 
-  transform: translateX(-50%);
+  transform:
+    translateX(-50%);
 
   z-index: 3;
 
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
 
   gap: 8px;
@@ -200,8 +283,6 @@ select {
   letter-spacing: 2px;
 
   text-transform: uppercase;
-
-  user-select: none;
 }
 
 .scroll-line {
@@ -221,8 +302,7 @@ select {
     transform:
       scaleY(0.35);
 
-    transform-origin:
-      top;
+    transform-origin: top;
 
     opacity: 0.35;
   }
@@ -231,8 +311,7 @@ select {
     transform:
       scaleY(1);
 
-    transform-origin:
-      top;
+    transform-origin: top;
 
     opacity: 1;
   }
@@ -257,6 +336,7 @@ select {
   height: 45px;
 
   border: none;
+
   border-radius: 50%;
 
   background:
@@ -269,6 +349,7 @@ select {
   cursor: pointer;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -281,7 +362,8 @@ select {
 }
 
 .menu-button:hover {
-  transform: scale(1.08);
+  transform:
+    scale(1.08);
 
   box-shadow:
     0 14px 35px rgba(0, 0, 0, 0.16);
@@ -315,6 +397,7 @@ select {
   width: 100%;
 
   border: none;
+
   border-radius: 9px;
 
   padding:
@@ -336,12 +419,15 @@ select {
 }
 
 .login-menu button:hover {
-  background: #f3f4f6;
+  background:
+    #f3f4f6;
 
-  padding-left: 18px;
+  padding-left:
+    18px;
 }
 
 @keyframes menuAppear {
+
   from {
     opacity: 0;
 
@@ -357,6 +443,7 @@ select {
       translateY(0)
       scale(1);
   }
+
 }
 
 
@@ -374,6 +461,7 @@ select {
   width: 100%;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -402,60 +490,44 @@ select {
   position: relative;
 
   border: none;
+  border-radius: 8px;
 
   background: transparent;
 
-  padding:
-    7px 0;
+  padding: 19px 18px;
 
-  color: #737983;
+  color: #737983 !important;
 
   font-size: 14px;
+  font-weight: 500;
 
   cursor: pointer;
 
   transition:
+    background-color 0.25s ease,
     color 0.25s ease,
-    transform 0.25s ease;
-}
-
-.tabs button::after {
-  content: "";
-
-  position: absolute;
-
-  left: 0;
-  bottom: 0;
-
-  width: 0;
-  height: 1px;
-
-  background: #111827;
-
-  transition:
-    width 0.3s ease;
+    transform 0.2s ease;
 }
 
 .tabs button:hover {
-  color: #111827;
+  background-color: #0b5da7 !important;
 
-  transform:
-    translateY(-2px);
+  color: #ffffff !important;
+
+  transform: translateY(-1px);
 }
 
-.tabs button:hover::after {
-  width: 100%;
-}
 
 
 /* =====================================================
-   RIGHT SIDE PROGRESS
+   PROGRESS
 ===================================================== */
 
 .section-progress {
   position: fixed;
 
   right: 25px;
+
   top: 50%;
 
   transform:
@@ -464,7 +536,9 @@ select {
   z-index: 90;
 
   display: flex;
+
   flex-direction: column;
+
   align-items: flex-end;
 
   gap: 12px;
@@ -477,6 +551,7 @@ select {
   padding: 0;
 
   display: flex;
+
   align-items: center;
   justify-content: flex-end;
 
@@ -505,13 +580,6 @@ select {
   letter-spacing: 1px;
 
   color: #555b65;
-
-  transition:
-    color 0.3s ease;
-}
-
-.progress-item.active .progress-number {
-  color: #111827;
 }
 
 .progress-dot {
@@ -544,12 +612,14 @@ select {
   position: relative;
 
   width: 100%;
+
   min-height: 100vh;
 
   padding:
-    100px 0 180px;
+    40px 0 180px;
 
-  background: #f5f6f8;
+  background:
+    #f5f6f8;
 
   perspective:
     1600px;
@@ -557,11 +627,8 @@ select {
   overflow: hidden;
 
   transition:
-    background-color 0.7s ease;
+    background-color 0.6s ease;
 }
-
-
-/* background glow */
 
 .overview-page::before {
   content: "";
@@ -595,8 +662,8 @@ select {
 
   border-radius: 50%;
 
-  right: -330px;
   top: 48%;
+  right: -330px;
 
   background:
     rgba(231, 224, 215, 0.28);
@@ -657,7 +724,7 @@ select {
 
 
 /* =====================================================
-   MAIN CARD
+   OVERVIEW CARDS
 ===================================================== */
 
 .overview-section {
@@ -687,11 +754,6 @@ select {
     transform,
     opacity;
 }
-
-
-/* =====================================================
-   CARD INNER
-===================================================== */
 
 .card-inner {
   position: relative;
@@ -732,27 +794,28 @@ select {
 ===================================================== */
 
 .section-one .card-inner {
-  background: #eef3f8;
+  background:
+    #eef3f8;
 }
 
 .section-two .card-inner {
-  background: #f3f0ea;
+  background:
+    #f3f0ea;
 }
 
 .section-three .card-inner {
-  background: #edf3ed;
+  background:
+    #edf3ed;
 }
 
 .section-four .card-inner {
-  background: #f2eef5;
+  background:
+    #f2eef5;
 }
 
 .section-five .card-inner {
-  background: #eaf0f5;
-}
-
-.extra-section .card-inner {
-  background: #f1f2f5;
+  background:
+    #eaf0f5;
 }
 
 
@@ -796,7 +859,7 @@ select {
 
 
 /* =====================================================
-   HUGE BACKGROUND NUMBER
+   HUGE NUMBER
 ===================================================== */
 
 .section-ghost-number {
@@ -895,7 +958,7 @@ select {
 
 
 /* =====================================================
-   ABOUT GRID
+   ABOUT
 ===================================================== */
 
 .about-grid {
@@ -1034,16 +1097,105 @@ select {
 
 
 /* =====================================================
-   EXTRA SECTIONS
+   NEW TAB SECTIONS
 ===================================================== */
 
-.extra-section h3 {
-  margin-bottom: 12px;
+.tab-page-section {
+  width: 100%;
+
+  min-height: 85vh;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    100px 30px;
+
+  text-align: center;
+
+  border-top:
+    1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tab-page-inner {
+  width:
+    min(950px, 90%);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+}
+
+.tab-page-label {
+  display: block;
+
+  margin-bottom: 20px;
+
+  color: #969ca6;
+
+  font-size: 10px;
+
+  letter-spacing: 3px;
+
+  text-transform: uppercase;
+}
+
+.tab-page-section h2 {
+  margin:
+    0 0 25px;
+
+  color: #151922;
+
+  font-size:
+    clamp(52px, 8vw, 100px);
+
+  font-weight: 500;
+
+  line-height: 0.95;
+
+  letter-spacing: -4px;
+}
+
+.tab-page-section p {
+  width:
+    min(600px, 90%);
+
+  margin: 0;
+
+  color: #656b74;
+
+  font-size: 16px;
+
+  line-height: 1.7;
 }
 
 
 /* =====================================================
-   FOCUS / ACCESSIBILITY
+   TAB SECTION BACKGROUNDS
+===================================================== */
+
+.faculty-page {
+  background:
+    #f2f4f7;
+}
+
+.achievements-page {
+  background:
+    #f4f0ea;
+}
+
+.events-page {
+  background:
+    #eef2f5;
+}
+
+
+/* =====================================================
+   ACCESSIBILITY
 ===================================================== */
 
 button:focus-visible {
@@ -1054,8 +1206,11 @@ button:focus-visible {
 }
 
 ::selection {
-  background: #dfe5eb;
-  color: #111827;
+  background:
+    #dfe5eb;
+
+  color:
+    #111827;
 }
 
 
@@ -1080,7 +1235,6 @@ button:focus-visible {
   .about-grid {
     gap: 22px;
   }
-
 }
 
 
@@ -1099,30 +1253,21 @@ button:focus-visible {
     max-width: 75%;
   }
 
-
   .department-section {
-    min-height: 250px;
+    min-height: 150px;
 
     padding:
       40px 22px;
   }
 
   .department-title {
-    width: 95%;
-
-    font-size:
-      clamp(34px, 8vw, 50px);
-
-    letter-spacing:
-      -1.5px;
+    font-size: clamp(10px, 4vw, 36px);
   }
-
 
   .menu-container {
     top: 15px;
     right: 15px;
   }
-
 
   .tabs {
     justify-content: flex-start;
@@ -1148,22 +1293,18 @@ button:focus-visible {
     font-size: 13px;
   }
 
-
   .section-progress {
     display: none;
   }
-
 
   .hero-scroll-hint {
     display: none;
   }
 
-
   .overview-page {
     padding:
       65px 0 100px;
   }
-
 
   .overview-heading {
     width: 90%;
@@ -1176,7 +1317,6 @@ button:focus-visible {
 
     letter-spacing: -2px;
   }
-
 
   .overview-section {
     width: 88%;
@@ -1193,7 +1333,6 @@ button:focus-visible {
     border-radius: 18px;
   }
 
-
   .section-ghost-number {
     font-size:
       100px;
@@ -1202,38 +1341,62 @@ button:focus-visible {
     right: -10px;
   }
 
-
   .section-content h3 {
-    font-size: 27px;
+    font-size:
+      27px;
   }
 
   .section-content p {
-    font-size: 14px;
+    font-size:
+      14px;
 
-    line-height: 1.65;
+    line-height:
+      1.65;
   }
-
 
   .about-grid {
     grid-template-columns:
       1fr;
 
-    gap: 25px;
+    gap:
+      25px;
   }
-
 
   .outcomes-grid {
     grid-template-columns:
       1fr;
 
-    gap: 8px;
+    gap:
+      8px;
   }
 
-
   .mission-list li {
-    font-size: 14px;
+    font-size:
+      14px;
 
-    line-height: 1.65;
+    line-height:
+      1.65;
+  }
+
+  .tab-page-section {
+    min-height:
+      70vh;
+
+    padding:
+      90px 25px;
+  }
+
+  .tab-page-section h2 {
+    font-size:
+      clamp(45px, 12vw, 70px);
+
+    letter-spacing:
+      -3px;
+  }
+
+  .tab-page-section p {
+    font-size:
+      14px;
   }
 
 }
@@ -1253,7 +1416,6 @@ button:focus-visible {
     width: 240px;
   }
 
-
   .department-section {
     min-height: 220px;
 
@@ -1262,23 +1424,26 @@ button:focus-visible {
   }
 
   .department-title {
-    font-size: 30px;
+    font-size:
+      30px;
 
-    letter-spacing: -1px;
+    letter-spacing:
+      -1px;
   }
 
-
   .overview-heading {
-    width: 88%;
+    width:
+      88%;
   }
 
   .overview-heading h2 {
-    font-size: 36px;
+    font-size:
+      36px;
   }
 
-
   .overview-section {
-    width: 90%;
+    width:
+      90%;
   }
 
   .card-inner {
@@ -1286,28 +1451,45 @@ button:focus-visible {
       27px 20px;
   }
 
-
   .section-content h3 {
-    font-size: 25px;
+    font-size:
+      25px;
   }
 
   .section-content p {
-    font-size: 13px;
+    font-size:
+      13px;
   }
-
 
   .about-grid li {
-    font-size: 12px;
+    font-size:
+      12px;
   }
-
 
   .mission-list li {
-    font-size: 13px;
+    font-size:
+      13px;
   }
 
-
   .outcomes-column p {
-    font-size: 11px;
+    font-size:
+      11px;
+  }
+
+  .tab-page-section {
+    min-height:
+      65vh;
+
+    padding:
+      75px 20px;
+  }
+
+  .tab-page-section h2 {
+    font-size:
+      42px;
+
+    letter-spacing:
+      -2px;
   }
 
 }
@@ -1320,7 +1502,8 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
 
   html {
-    scroll-behavior: auto;
+    scroll-behavior:
+      auto;
   }
 
   *,
@@ -1344,16 +1527,19 @@ button:focus-visible {
 
 @media (hover: none), (pointer: coarse) {
 
-  .hero-scroll-hint {
-    display: none;
+  .card-inner {
+    transform:
+      none !important;
   }
 
-  .card-inner {
-    transform: none !important;
+  .hero-scroll-hint {
+    display:
+      none;
   }
 
   .overview-section:hover .card-inner {
     box-shadow:
       0 20px 50px rgba(0, 0, 0, 0.06);
   }
+
 }

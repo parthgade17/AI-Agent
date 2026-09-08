@@ -1,8 +1,9 @@
 import { useLayoutEffect, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import DecryptedText from './DecryptedText'
 import './LandingPage.css'
+import CursorGrid from './CursorGrid'
+import DecryptedText from './DecryptedText'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -357,14 +358,19 @@ useLayoutEffect(() => {
       ================================================ */}
 
       <section className="department-section">
-  <DecryptedText
-    text="Department of Computer Science & Engineering"
-    speed={70}
+  <div className="department-title">
+    <DecryptedText
+      text="Department of Computer Science & Engineering"
+      speed={100}
   maxIterations={20}
-    className="department-decrypted"
-    parentClassName="department-decrypted-wrapper"
-    encryptedClassName="department-decrypted-encrypted"
-  />
+    />
+    
+  </div>
+
+  <div className="hero-scroll-hint">
+    <span>Scroll to explore</span>
+    <div className="scroll-line" />
+  </div>
 </section>
 
 
@@ -389,6 +395,10 @@ useLayoutEffect(() => {
 
         {menuOpen && (
           <div className="login-menu">
+            
+            <button>
+              HOD Login
+            </button>
 
             <button>
               Teacher Login
@@ -495,6 +505,11 @@ useLayoutEffect(() => {
       ================================================ */}
 
       <section className="overview-page">
+
+
+  <div className="cursor-grid-wrapper">
+    <CursorGrid />
+  </div>
 
         <div className="overview-heading">
 
@@ -914,133 +929,65 @@ useLayoutEffect(() => {
 
         </section>
 
+      </section>
 
-        {/* =============================================
+
+      {/* =============================================
             06 — FACULTY
         ============================================== */}
 
-        <section
-          className="overview-section extra-section"
-          id="faculty"
-        >
+       {/* =============================================
+    FACULTY
+============================================= */}
 
-          <div className="card-inner">
+<section
+  className="content-section faculty-section"
+  id="faculty"
+>
+  <div className="content-heading">
+    <span>02 — Academics</span>
+    <h2>Faculty</h2>
+  </div>
 
-            <div className="section-ghost-number">
-              06
-            </div>
+  {/* Faculty content will be added here later */}
 
-            <div className="card-content">
-
-              <div className="section-number">
-                06
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  Faculty
-                </h3>
-
-                <p>
-                  Meet the experienced faculty members
-                  of the Department of Computer Science
-                  and Engineering.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
+</section>
 
 
-        {/* =============================================
-            07 — ACHIEVEMENTS
-        ============================================== */}
+{/* =============================================
+    STUDENT ACHIEVEMENTS
+============================================= */}
 
-        <section
-          className="overview-section extra-section"
-          id="achievements"
-        >
+<section
+  className="content-section achievements-section"
+  id="achievements"
+>
+  <div className="content-heading">
+    <span>03 — Students</span>
+    <h2>Student Achievements</h2>
+  </div>
 
-          <div className="card-inner">
+  {/* Student achievement content will be added here later */}
 
-            <div className="section-ghost-number">
-              07
-            </div>
-
-            <div className="card-content">
-
-              <div className="section-number">
-                07
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  Student Achievements
-                </h3>
-
-                <p>
-                  Explore achievements, hackathons,
-                  competitions, projects and
-                  accomplishments of our students.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
+</section>
 
 
-        {/* =============================================
-            08 — EVENTS
-        ============================================== */}
+{/* =============================================
+    UPCOMING EVENTS
+============================================= */}
 
-        <section
-          className="overview-section extra-section"
-          id="events"
-        >
+<section
+  className="content-section events-section"
+  id="events"
+>
+  <div className="content-heading">
+    <span>04 — Campus</span>
+    <h2>Upcoming Events</h2>
+  </div>
 
-          <div className="card-inner">
+  {/* Event content will be added here later */}
 
-            <div className="section-ghost-number">
-              08
-            </div>
-
-            <div className="card-content">
-
-              <div className="section-number">
-                08
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  Upcoming Events
-                </h3>
-
-                <p>
-                  Stay updated with upcoming workshops,
-                  expert sessions, hackathons, seminars
-                  and department events.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-      </section>
+</section>
 
     </main>
   )
