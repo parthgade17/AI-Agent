@@ -506,311 +506,209 @@ useLayoutEffect(() => {
 
       <section className="overview-page">
 
+  {/* =================================================
+      CURSOR GRID
+  ================================================= */}
 
   <div className="cursor-grid-wrapper">
     <CursorGrid />
   </div>
 
-        <div className="overview-heading">
 
-          <span>
-            01 — Department
-          </span>
+  {/* =================================================
+      DEPARTMENT OVERVIEW HEADING
+  ================================================= */}
 
-          <h2 id="overview">
-            Department Overview
-          </h2>
+  <div className="overview-heading">
+
+    <span>
+      01 — Department
+    </span>
+
+    <h2 id="overview">
+      Department Overview
+    </h2>
+
+  </div>
+
+
+  {/* =================================================
+      FIVE DEPARTMENT OVERVIEW CARDS
+  ================================================= */}
+
+  <div className="overview-grid">
+
+
+    {/* =============================================
+        01 — WELCOME
+    ============================================== */}
+
+    <section className="overview-section section-one">
+
+      <div className="card-inner">
+
+        <div className="section-ghost-number">
+          01
+        </div>
+
+        <div className="card-content">
+
+          <div className="section-number">
+            01
+          </div>
+
+          <div className="section-content">
+
+            <h3>
+              Welcome to the Department of
+              Computer Science and Engineering
+            </h3>
+
+            <p>
+              The 21st century is known as the
+              technical era, and Computer Science
+              is one of the core fields most impacted
+              by this rapid transformation.
+            </p>
+
+            <p>
+              Keeping these versatile needs in mind,
+              Sanjivani University established the
+              Department of Computer Science and
+              Engineering in 2024. The department has
+              highly qualified faculty members,
+              fully digitally equipped classrooms,
+              and state-of-the-art laboratories.
+            </p>
+
+            <p>
+              It follows all rules and regulations
+              laid down by NEP-2020, with flexibility
+              to meet industry requirements and
+              choice-based subject selection.
+            </p>
+
+          </div>
 
         </div>
 
+      </div>
 
-        {/* =============================================
-            01 — WELCOME
-        ============================================== */}
+    </section>
 
-        <section className="overview-section section-one">
 
-          <div className="card-inner">
+    {/* =============================================
+        02 — ABOUT
+    ============================================== */}
 
-            <div className="section-ghost-number">
-              01
-            </div>
+    <section className="overview-section section-two">
 
-            <div className="card-content">
+      <div className="card-inner">
 
-              <div className="section-number">
-                01
-              </div>
+        <div className="section-ghost-number">
+          02
+        </div>
 
-              <div className="section-content">
+        <div className="card-content">
 
-                <h3>
-                  Welcome to the Department of
-                  Computer Science and Engineering
-                </h3>
-
-                <p>
-                  The 21st century is known as the
-                  technical era, and Computer Science
-                  is one of the core fields most impacted
-                  by this rapid transformation.
-                </p>
-
-                <p>
-                  Keeping these versatile needs in mind,
-                  Sanjivani University established the
-                  Department of Computer Science and
-                  Engineering in 2024. The department has
-                  highly qualified faculty members,
-                  fully digitally equipped classrooms,
-                  and state-of-the-art laboratories.
-                </p>
-
-                <p>
-                  It follows all rules and regulations
-                  laid down by NEP-2020, with flexibility
-                  to meet industry requirements and
-                  choice-based subject selection.
-                </p>
-
-              </div>
-
-            </div>
-
+          <div className="section-number">
+            02
           </div>
 
-        </section>
+          <div className="section-content">
 
+            <h3>
+              About Us
+            </h3>
 
-        {/* =============================================
-            02 — ABOUT
-        ============================================== */}
+            <p>
+              The Department of Computer Science and
+              Engineering at Sanjivani University is
+              committed to excellence in education
+              and research in full stack development
+              with focus on domains such as Computer
+              Vision, Machine Learning, Digital Twins
+              etc.
+            </p>
 
-        <section className="overview-section section-two">
+            <div className="about-grid">
 
-          <div className="card-inner">
+              <div>
 
-            <div className="section-ghost-number">
-              02
-            </div>
+                <h4>
+                  Programs Offered
+                </h4>
 
-            <div className="card-content">
-
-              <div className="section-number">
-                02
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  About Us
-                </h3>
-
-                <p>
-                  The Department of Computer Science and
-                  Engineering at Sanjivani University is
-                  committed to excellence in education
-                  and research in full stack development
-                  with focus on domains such as Computer
-                  Vision, Machine Learning, Digital Twins
-                  etc.
-                </p>
-
-                <div className="about-grid">
-
-                  <div>
-
-                    <h4>
-                      Programs Offered
-                    </h4>
-
-                    <ul>
-
-                      <li>
-                        <strong>
-                          Undergraduate:
-                        </strong>{' '}
-                        B.Tech CSE curriculum powered
-                        by HCLTech
-                      </li>
-
-                      <li>
-                        <strong>
-                          Postgraduate:
-                        </strong>{' '}
-                        M.Tech in CSE
-                      </li>
-
-                      <li>
-                        <strong>
-                          Research:
-                        </strong>{' '}
-                        Ph.D. in CSE
-                      </li>
-
-                    </ul>
-
-                  </div>
-
-                  <div>
-
-                    <h4>
-                      Features
-                    </h4>
-
-                    <ul>
-
-                      <li>
-                        <strong>
-                          HCLTech-Powered Syllabus
-                        </strong>{' '}
-                        – Industry-aligned curriculum
-                        with real-world exposure
-                      </li>
-
-                      <li>
-                        <strong>
-                          Advanced Labs
-                        </strong>{' '}
-                        – High-performance GPUs,
-                        Computer Vision Lab, Data Science
-                        & Analytics Lab, Robotics &
-                        Automation Lab
-                      </li>
-
-                      <li>
-                        <strong>
-                          Industry Collaborations
-                        </strong>{' '}
-                        – MOUs with leading organizations
-                        including HCLTech
-                      </li>
-
-                      <li>
-                        <strong>
-                          Student Activities
-                        </strong>{' '}
-                        – ACSES, Hackathons, Workshops,
-                        International Expert Sessions,
-                        Industry Visits
-                      </li>
-
-                    </ul>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =============================================
-            03 — VISION
-        ============================================== */}
-
-        <section
-          className="overview-section section-three"
-          id="vision"
-        >
-
-          <div className="card-inner">
-
-            <div className="section-ghost-number">
-              03
-            </div>
-
-            <div className="card-content">
-
-              <div className="section-number">
-                03
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  Vision
-                </h3>
-
-                <p>
-                  To achieve global recognition in the
-                  field of computer science and engineering
-                  department through innovative curriculum
-                  and quality in Education, Research,
-                  Innovation and Entrepreneurship to
-                  produce effective leaders for serving
-                  the societal challenges.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =============================================
-            04 — MISSION
-        ============================================== */}
-
-        <section className="overview-section section-four">
-
-          <div className="card-inner">
-
-            <div className="section-ghost-number">
-              04
-            </div>
-
-            <div className="card-content">
-
-              <div className="section-number">
-                04
-              </div>
-
-              <div className="section-content">
-
-                <h3>
-                  Mission
-                </h3>
-
-                <ul className="mission-list">
+                <ul>
 
                   <li>
-                    To provide the platform to become
-                    industry ready technocrats as a full
-                    stack developer and a curriculum
-                    tailored to industry needs, with a
-                    focus on complex problem-solving
-                    skills.
+                    <strong>
+                      Undergraduate:
+                    </strong>{' '}
+                    B.Tech CSE curriculum powered
+                    by HCLTech
                   </li>
 
                   <li>
-                    To impart high quality Experiential
-                    learning in modern software tools and
-                    to cater to the real time requirements
-                    of the industry.
+                    <strong>
+                      Postgraduate:
+                    </strong>{' '}
+                    M.Tech in CSE
                   </li>
 
                   <li>
-                    To develop quality research with both
-                    national and international to enhance
-                    learning and research through research
-                    ecosystem.
+                    <strong>
+                      Research:
+                    </strong>{' '}
+                    Ph.D. in CSE
+                  </li>
+
+                </ul>
+
+              </div>
+
+
+              <div>
+
+                <h4>
+                  Features
+                </h4>
+
+                <ul>
+
+                  <li>
+                    <strong>
+                      HCLTech-Powered Syllabus
+                    </strong>{' '}
+                    – Industry-aligned curriculum
+                    with real-world exposure
                   </li>
 
                   <li>
-                    To promote a supportive and positive
-                    community by engaging initiatives that
-                    contributes to societal well-being and
-                    fulfils institutional social
-                    responsibility.
+                    <strong>
+                      Advanced Labs
+                    </strong>{' '}
+                    – High-performance GPUs,
+                    Computer Vision Lab, Data Science
+                    & Analytics Lab, Robotics &
+                    Automation Lab
+                  </li>
+
+                  <li>
+                    <strong>
+                      Industry Collaborations
+                    </strong>{' '}
+                    – MOUs with leading organizations
+                    including HCLTech
+                  </li>
+
+                  <li>
+                    <strong>
+                      Student Activities
+                    </strong>{' '}
+                    – ACSES, Hackathons, Workshops,
+                    International Expert Sessions,
+                    Industry Visits
                   </li>
 
                 </ul>
@@ -821,105 +719,220 @@ useLayoutEffect(() => {
 
           </div>
 
-        </section>
+        </div>
+
+      </div>
+
+    </section>
 
 
-        {/* =============================================
-            05 — PROGRAM OUTCOMES
-        ============================================== */}
+    {/* =============================================
+        03 — VISION
+    ============================================== */}
 
-        <section className="overview-section section-five">
+    <section
+      className="overview-section section-three"
+      id="vision"
+    >
 
-          <div className="card-inner">
+      <div className="card-inner">
 
-            <div className="section-ghost-number">
-              05
-            </div>
+        <div className="section-ghost-number">
+          03
+        </div>
 
-            <div className="card-content">
+        <div className="card-content">
 
-              <div className="section-number">
-                05
+          <div className="section-number">
+            03
+          </div>
+
+          <div className="section-content">
+
+            <h3>
+              Vision
+            </h3>
+
+            <p>
+              To achieve global recognition in the
+              field of computer science and engineering
+              department through innovative curriculum
+              and quality in Education, Research,
+              Innovation and Entrepreneurship to
+              produce effective leaders for serving
+              the societal challenges.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    {/* =============================================
+        04 — MISSION
+    ============================================== */}
+
+    <section className="overview-section section-four">
+
+      <div className="card-inner">
+
+        <div className="section-ghost-number">
+          04
+        </div>
+
+        <div className="card-content">
+
+          <div className="section-number">
+            04
+          </div>
+
+          <div className="section-content">
+
+            <h3>
+              Mission
+            </h3>
+
+            <ul className="mission-list">
+
+              <li>
+                To provide the platform to become
+                industry ready technocrats as a full
+                stack developer and a curriculum
+                tailored to industry needs, with a
+                focus on complex problem-solving
+                skills.
+              </li>
+
+              <li>
+                To impart high quality Experiential
+                learning in modern software tools and
+                to cater to the real time requirements
+                of the industry.
+              </li>
+
+              <li>
+                To develop quality research with both
+                national and international to enhance
+                learning and research through research
+                ecosystem.
+              </li>
+
+              <li>
+                To promote a supportive and positive
+                community by engaging initiatives that
+                contributes to societal well-being and
+                fulfils institutional social
+                responsibility.
+              </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    {/* =============================================
+        05 — PROGRAM OUTCOMES
+    ============================================== */}
+
+    <section className="overview-section section-five">
+
+      <div className="card-inner">
+
+        <div className="section-ghost-number">
+          05
+        </div>
+
+        <div className="card-content">
+
+          <div className="section-number">
+            05
+          </div>
+
+          <div className="section-content">
+
+            <h3>
+              Program Outcomes
+            </h3>
+
+            <div className="outcomes-grid">
+
+              <div className="outcomes-column">
+
+                <p>
+                  <strong>PO1</strong>
+                  Engineering Knowledge
+                </p>
+
+                <p>
+                  <strong>PO2</strong>
+                  Problem Analysis
+                </p>
+
+                <p>
+                  <strong>PO3</strong>
+                  Design/Development of Solutions
+                </p>
+
+                <p>
+                  <strong>PO4</strong>
+                  Conduct investigations of complex
+                  problems
+                </p>
+
+                <p>
+                  <strong>PO5</strong>
+                  Modern tool usage
+                </p>
+
+                <p>
+                  <strong>PO6</strong>
+                  The engineer and society
+                </p>
+
               </div>
 
-              <div className="section-content">
 
-                <h3>
-                  Program Outcomes
-                </h3>
+              <div className="outcomes-column">
 
-                <div className="outcomes-grid">
+                <p>
+                  <strong>PO7</strong>
+                  Environment and sustainability
+                </p>
 
-                  <div className="outcomes-column">
+                <p>
+                  <strong>PO8</strong>
+                  Ethics
+                </p>
 
-                    <p>
-                      <strong>PO1</strong>
-                      Engineering Knowledge
-                    </p>
+                <p>
+                  <strong>PO9</strong>
+                  Individual and team work
+                </p>
 
-                    <p>
-                      <strong>PO2</strong>
-                      Problem Analysis
-                    </p>
+                <p>
+                  <strong>PO10</strong>
+                  Communication
+                </p>
 
-                    <p>
-                      <strong>PO3</strong>
-                      Design/Development of Solutions
-                    </p>
+                <p>
+                  <strong>PO11</strong>
+                  Project management and finance
+                </p>
 
-                    <p>
-                      <strong>PO4</strong>
-                      Conduct investigations of complex
-                      problems
-                    </p>
-
-                    <p>
-                      <strong>PO5</strong>
-                      Modern tool usage
-                    </p>
-
-                    <p>
-                      <strong>PO6</strong>
-                      The engineer and society
-                    </p>
-
-                  </div>
-
-                  <div className="outcomes-column">
-
-                    <p>
-                      <strong>PO7</strong>
-                      Environment and sustainability
-                    </p>
-
-                    <p>
-                      <strong>PO8</strong>
-                      Ethics
-                    </p>
-
-                    <p>
-                      <strong>PO9</strong>
-                      Individual and team work
-                    </p>
-
-                    <p>
-                      <strong>PO10</strong>
-                      Communication
-                    </p>
-
-                    <p>
-                      <strong>PO11</strong>
-                      Project management and finance
-                    </p>
-
-                    <p>
-                      <strong>PO12</strong>
-                      Life-long learning
-                    </p>
-
-                  </div>
-
-                </div>
+                <p>
+                  <strong>PO12</strong>
+                  Life-long learning
+                </p>
 
               </div>
 
@@ -927,65 +940,85 @@ useLayoutEffect(() => {
 
           </div>
 
-        </section>
+        </div>
 
-      </section>
+      </div>
+
+    </section>
+
+  </div>
+
+</section>
 
 
-      {/* =============================================
-            06 — FACULTY
-        ============================================== */}
-
-       {/* =============================================
+{/* =================================================
     FACULTY
-============================================= */}
+================================================= */}
 
 <section
   className="content-section faculty-section"
   id="faculty"
 >
-  <div className="content-heading">
-    <span>02 — Academics</span>
-    <h2>Faculty</h2>
-  </div>
 
-  {/* Faculty content will be added here later */}
+  <div className="content-heading">
+
+    <span>
+      02 — Academics
+    </span>
+
+    <h2>
+      Faculty
+    </h2>
+
+  </div>
 
 </section>
 
 
-{/* =============================================
+{/* =================================================
     STUDENT ACHIEVEMENTS
-============================================= */}
+================================================= */}
 
 <section
   className="content-section achievements-section"
   id="achievements"
 >
-  <div className="content-heading">
-    <span>03 — Students</span>
-    <h2>Student Achievements</h2>
-  </div>
 
-  {/* Student achievement content will be added here later */}
+  <div className="content-heading">
+
+    <span>
+      03 — Students
+    </span>
+
+    <h2>
+      Student Achievements
+    </h2>
+
+  </div>
 
 </section>
 
 
-{/* =============================================
+{/* =================================================
     UPCOMING EVENTS
-============================================= */}
+================================================= */}
 
 <section
   className="content-section events-section"
   id="events"
 >
-  <div className="content-heading">
-    <span>04 — Campus</span>
-    <h2>Upcoming Events</h2>
-  </div>
 
-  {/* Event content will be added here later */}
+  <div className="content-heading">
+
+    <span>
+      04 — Campus
+    </span>
+
+    <h2>
+      Upcoming Events
+    </h2>
+
+  </div>
 
 </section>
 

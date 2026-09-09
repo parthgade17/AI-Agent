@@ -722,7 +722,58 @@ button {
   letter-spacing: -2.5px;
 }
 
+/* =====================================================
+   DEPARTMENT OVERVIEW GRID
+===================================================== */
 
+.overview-grid {
+  width: min(1100px, 90%);
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 50px 35px;
+
+  align-items: start;
+}
+
+
+/* Let the grid control card width */
+
+.overview-grid .overview-section {
+  width: 100%;
+  margin: 0;
+}
+
+
+/* Program Outcomes = full width */
+
+.overview-grid .section-five {
+  grid-column: 1 / -1;
+}
+
+/* MObile Css for Cards  */
+@media (max-width: 768px) {
+
+  .overview-grid {
+    width: 88%;
+
+    grid-template-columns: 1fr;
+
+    gap: 45px;
+  }
+
+  .overview-grid .overview-section {
+    width: 100%;
+  }
+
+  .overview-grid .section-five {
+    grid-column: auto;
+  }
+
+}
 /* =====================================================
    OVERVIEW CARDS
 ===================================================== */
