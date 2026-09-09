@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { api } from '../api'
 import type { Role, Session } from '../api'
 import './AuthModal.css'
@@ -87,6 +88,18 @@ function AuthModal({ target, onClose, onSuccess }: Props) {
               password,
               role: target.role,
             })
+      // The signup role comes from the button that opened this modal, so a
+      // Teacher signup creates a faculty account and an HOD signup creates
+      // an admin account.
+      if (session.role !== target.role) {
+        setServerError(
+          `This account has the "${session.role}" role, not ${target.label}. ` +
+          `Use the matching login option for this account.`,
+        )
+        setBusy(false)
+        return
+      }
+
       onSuccess(session)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong')
@@ -96,7 +109,10 @@ function AuthModal({ target, onClose, onSuccess }: Props) {
 
   const field = (key: string) => (errors[key] ? 'auth-input auth-input-error' : 'auth-input')
 
-  return (
+  // Rendered into document.body via a portal. The landing page applies GSAP
+  // transforms to its sections, and a transformed ancestor traps position:fixed
+  // children inside it — which is why the nav bar was painting over the modal.
+  return createPortal(
     <div className="auth-overlay" onClick={onClose}>
       <div
         className="auth-modal"
@@ -233,7 +249,8 @@ function AuthModal({ target, onClose, onSuccess }: Props) {
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

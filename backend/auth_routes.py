@@ -30,7 +30,7 @@ class SignupIn(BaseModel):
     email: str
     mobile: str
     password: str
-    role: str = "student"    # accepted for convenience, ignored — see auth.register
+    role: str = "student"    # student, faculty or admin — see auth.ROLE_SELF_SIGNUP
 
 
 @router.post("/login")
@@ -40,7 +40,7 @@ def login(body: LoginIn):
 
 @router.post("/signup")
 def signup(body: SignupIn):
-    return auth.register(body.name, body.email, body.mobile, body.password)
+    return auth.register(body.name, body.email, body.mobile, body.password, body.role)
 
 
 @router.get("/me")

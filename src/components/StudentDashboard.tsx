@@ -1,13 +1,22 @@
-import { useState } from 'react'
+
+import { useEffect, useState } from 'react'
+import { studentApi } from '../api'
+import type { PublicEvent, Session, LabRow, AnnouncementRow } from '../api'
 import './StudentDashboard.css'
 
-import DepartmentSection from './DepartmentSection'
 import ProfileSection from './ProfileSection'
 import AchievementSection from './AchievementSection'
 import LMSSection from './LMSSection'
 
-function StudentDashboard() {
+interface Props {
+  session: Session
+  onSignOut: () => void
+}
+
+function StudentDashboard({ session, onSignOut }: Props) {
   const [activeModule, setActiveModule] = useState<string | null>(null)
+  const token = session.token
+  const initial = session.name.charAt(0).toUpperCase()
 
   function openModule(module: string) {
     setActiveModule(module)
@@ -18,121 +27,341 @@ function StudentDashboard() {
   }
 
   /* =========================
+     HEADER
+  ========================= */
+
+  function Header() {
+    return (
+      <header className="student-header">
+
+        <div className="student-logo">
+
+          <div className="student-logo-icon">S</div>
+
+          <div>
+            <h2>Student Portal</h2>
+          </div>
+
+        </div>
+
+        <div className="student-profile">
+
+          <div className="profile-avatar">{initial}</div>
+
+          <div>
+            <strong>{session.name}</strong>
+
+            <span>{session.role_label}</span>
+          </div>
+
+          <button className="student-signout" onClick={onSignOut}>
+            Sign out
+          </button>
+
+        </div>
+
+      </header>
+    )
+  }
+
+  /* =========================
      MODULE HEADER
   ========================= */
 
   function ModuleHeader() {
     return (
       <>
-        <header className="student-header">
-
-          <div className="student-logo">
-
-            <div className="student-logo-icon">
-              S
-            </div>
-
-            <div>
-              <h2>Student Portal</h2>
-
-              <p>
-                Computer Science & Engineering
-              </p>
-            </div>
-
-          </div>
-
-          <div className="student-profile">
-
-            <div className="profile-avatar">
-              S
-            </div>
-
-            <div>
-              <strong>Student</strong>
-
-              <span>
-                Student
-              </span>
-            </div>
-
-          </div>
-
-        </header>
+        <Header />
 
         <div className="module-navigation">
-
           <button
             className="back-dashboard-button"
             onClick={goBackToDashboard}
           >
             ← Back to Dashboard
           </button>
-
         </div>
       </>
     )
   }
 
   /* =========================
-     DEPARTMENT
+     SIMPLE LIST MODULES
   ========================= */
 
-  if (activeModule === 'department') {
+  function LabsModule() {
+    const [rows, setRows] = useState<LabRow[]>([])
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+      studentApi.labs(token).then(setRows).catch((e) => setError(e.message))
+    }, [])
+
     return (
-      <main className="student-dashboard">
+      <section className="student-module">
 
-        <ModuleHeader />
+        <span className="student-module-label">
+          01 · LABORATORIES
+        </span>
 
-        <DepartmentSection />
+        <h2>Labs</h2>
 
-      </main>
+        {error && <p>{error}</p>}
+
+        <div className="student-module-grid">
+
+          {rows.map((l) => (
+            <div className="student-module-card" key={l.name}>
+
+              <h3>
+                {l.name}
+
+                {l.is_coe && (
+                  <span className="student-tag">
+                    Centre of Excellence
+                  </span>
+                )}
+              </h3>
+
+              <p className="student-module-sub">
+                {l.total_systems
+                  ? `${l.total_systems} systems`
+                  : ''}
+
+                {l.operating_system
+                  ? ` · ${l.operating_system}`
+                  : ''}
+
+                {l.is_24x7
+                  ? ' · Open 24×7'
+                  : ''}
+              </p>
+
+              {l.processor && (
+                <p className="student-module-sub">
+                  {l.processor} · {l.memory}
+                </p>
+              )}
+
+              {l.features && (
+                <p>{l.features}</p>
+              )}
+
+              {l.sponsored_by && (
+                <p className="student-module-sub">
+                  Sponsored by {l.sponsored_by}
+                </p>
+              )}
+
+            </div>
+          ))}
+
+          {!rows.length && !error && (
+            <p>Loading laboratories…</p>
+          )}
+
+        </div>
+
+      </section>
+    )
+  }
+
+  function EventsModule() {
+    const [rows, setRows] = useState<PublicEvent[]>([])
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+      studentApi.events(token).then(setRows).catch((e) => setError(e.message))
+    }, [])
+
+    return (
+      <section className="student-module">
+
+        <span className="student-module-label">
+          02 · EVENTS
+        </span>
+
+        <h2>Upcoming Events</h2>
+
+        {error && <p>{error}</p>}
+
+        <div className="student-module-grid">
+
+          {rows.map((e) => (
+            <div className="student-module-card" key={e.id}>
+
+              <h3>
+                {e.title}
+
+                <span className="student-tag">
+                  {e.scope === 'institute'
+                    ? 'College'
+                    : 'Department'}
+                </span>
+              </h3>
+
+              <p className="student-module-sub">
+                {new Date(e.starts_at).toLocaleString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+
+                {e.venue
+                  ? ` · ${e.venue}`
+                  : ''}
+              </p>
+
+              {e.description && (
+                <p>{e.description}</p>
+              )}
+
+              {e.speaker && (
+                <p className="student-module-sub">
+                  Speaker: {e.speaker}
+                </p>
+              )}
+
+            </div>
+          ))}
+
+          {!rows.length && !error && (
+            <p>No upcoming events.</p>
+          )}
+
+        </div>
+
+      </section>
+    )
+  }
+
+  function AnnouncementsModule() {
+    const [rows, setRows] = useState<AnnouncementRow[]>([])
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+      studentApi.announcements(token)
+        .then(setRows)
+        .catch((e) => setError(e.message))
+    }, [])
+
+    return (
+      <section className="student-module">
+
+        <span className="student-module-label">
+          03 · ANNOUNCEMENTS
+        </span>
+
+        <h2>Announcements</h2>
+
+        {error && <p>{error}</p>}
+
+        <div className="student-module-grid">
+
+          {rows.map((a) => (
+            <div className="student-module-card" key={a.id}>
+
+              <h3>
+                {a.title}
+
+                {a.is_pinned && (
+                  <span className="student-tag">
+                    Pinned
+                  </span>
+                )}
+              </h3>
+
+              <p className="student-module-sub">
+                {new Date(a.published_at)
+                  .toLocaleDateString('en-IN')}
+              </p>
+
+              <p>{a.body}</p>
+
+            </div>
+          ))}
+
+          {!rows.length && !error && (
+            <p>No announcements yet.</p>
+          )}
+
+        </div>
+
+      </section>
+    )
+  }
+
+  function ComingSoon({
+    title,
+    label,
+  }: {
+    title: string
+    label: string
+  }) {
+    return (
+      <section className="student-module">
+
+        <span className="student-module-label">
+          {label}
+        </span>
+
+        <h2>{title}</h2>
+
+        <p>
+          This module is part of the next phase of the project and is not
+          available in the prototype.
+        </p>
+
+      </section>
     )
   }
 
   /* =========================
-     PROFILE
+     MODULE ROUTING
   ========================= */
 
-  if (activeModule === 'profile') {
-    return (
-      <main className="student-dashboard">
+  const modules: Record<string, React.ReactNode> = {
 
-        <ModuleHeader />
+    profile: (
+      <ProfileSection token={token} />
+    ),
 
-        <ProfileSection />
+    achievements: (
+      <AchievementSection token={token} />
+    ),
 
-      </main>
-    )
+    lms: (
+      <LMSSection token={token} />
+    ),
+
+    labs: (
+      <LabsModule />
+    ),
+
+    events: (
+      <EventsModule />
+    ),
+
+    announcements: (
+      <AnnouncementsModule />
+    ),
+
+    'ai-agent': (
+      <ComingSoon
+        title="AI Agent"
+        label="06 · AI AGENT"
+      />
+    ),
   }
 
-  /* =========================
-     ACHIEVEMENTS
-  ========================= */
-
-  if (activeModule === 'achievements') {
+  if (activeModule && modules[activeModule]) {
     return (
       <main className="student-dashboard">
 
         <ModuleHeader />
 
-        <AchievementSection />
-
-      </main>
-    )
-  }
-
-  /* =========================
-     LMS
-  ========================= */
-
-  if (activeModule === 'lms') {
-    return (
-      <main className="student-dashboard">
-
-        <ModuleHeader />
-
-        <LMSSection />
+        {modules[activeModule]}
 
       </main>
     )
@@ -142,47 +371,69 @@ function StudentDashboard() {
      MAIN DASHBOARD
   ========================= */
 
+  const cards = [
+
+    [
+      '01',
+      'Labs',
+      'Explore available laboratories and facilities.',
+      'View Labs',
+      'labs',
+    ],
+
+    [
+      '02',
+      'Events',
+      'Check upcoming college and student events.',
+      'View Events',
+      'events',
+    ],
+
+    [
+      '03',
+      'Announcements',
+      'Stay updated with important announcements.',
+      'View Announcements',
+      'announcements',
+    ],
+
+    [
+      '04',
+      'My Profile',
+      'View and manage your student profile.',
+      'View Profile',
+      'profile',
+    ],
+
+    [
+      '05',
+      'Achievements',
+      'Add and view your academic and extracurricular achievements.',
+      'My Achievements',
+      'achievements',
+    ],
+
+    [
+      '06',
+      'AI Agent',
+      'Ask questions and get AI-powered assistance.',
+      'Ask AI',
+      'ai-agent',
+    ],
+
+    [
+      '07',
+      'LMS / Dashboard',
+      'Access permitted academic and LMS information.',
+      'Open LMS',
+      'lms',
+    ],
+  ]
+
   return (
     <main className="student-dashboard">
 
-      {/* Header */}
-
-      <header className="student-header">
-
-        <div className="student-logo">
-
-          <div className="student-logo-icon">
-            S
-          </div>
-
-          <div>
-            <h2>Student Portal</h2>
-
-            <p>
-              Computer Science & Engineering
-            </p>
-          </div>
-
-        </div>
-
-        <div className="student-profile">
-
-          <div className="profile-avatar">
-            S
-          </div>
-
-          <div>
-            <strong>Student</strong>
-
-            <span>
-              Student
-            </span>
-          </div>
-
-        </div>
-
-      </header>
-
+      <Header />
 
       {/* Welcome Section */}
 
@@ -195,12 +446,12 @@ function StudentDashboard() {
           </p>
 
           <h1>
-            Welcome back, Student
+            Welcome back, {session.name.split(' ')[0]}
           </h1>
 
           <p>
-            Access your department information, academic resources,
-            achievements and AI assistance from one place.
+            Access your academic resources, achievements,
+            events and student services from one place.
           </p>
 
         </div>
@@ -212,255 +463,40 @@ function StudentDashboard() {
 
       <section className="dashboard-grid">
 
-
-        {/* Department */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            01
-          </div>
-
-          <h3>
-            Department
-          </h3>
-
-          <p>
-            View department information, programs and facilities.
-          </p>
-
-          <button
-            onClick={() => openModule('department')}
-          >
-            View Department
-          </button>
-
-        </div>
-
-
-        {/* Faculty */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            02
-          </div>
-
-          <h3>
-            Faculty
-          </h3>
-
-          <p>
-            View faculty members and their information.
-          </p>
-
-          <button
-            onClick={() => openModule('faculty')}
-          >
-            View Faculty
-          </button>
-
-        </div>
-
-
-        {/* Labs */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            03
-          </div>
-
-          <h3>
-            Labs
-          </h3>
-
-          <p>
-            Explore available laboratories and facilities.
-          </p>
-
-          <button
-            onClick={() => openModule('labs')}
-          >
-            View Labs
-          </button>
-
-        </div>
-
-
-        {/* Events */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            04
-          </div>
-
-          <h3>
-            Events
-          </h3>
-
-          <p>
-            Check upcoming college and department events.
-          </p>
-
-          <button
-            onClick={() => openModule('events')}
-          >
-            View Events
-          </button>
-
-        </div>
-
-
-        {/* Announcements */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            05
-          </div>
-
-          <h3>
-            Announcements
-          </h3>
-
-          <p>
-            Stay updated with important announcements.
-          </p>
-
-          <button
-            onClick={() => openModule('announcements')}
-          >
-            View Announcements
-          </button>
-
-        </div>
-
-
-        {/* Profile */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            06
-          </div>
-
-          <h3>
-            My Profile
-          </h3>
-
-          <p>
-            View and manage your student profile.
-          </p>
-
-          <button
-            onClick={() => openModule('profile')}
-          >
-            View Profile
-          </button>
-
-        </div>
-
-
-        {/* Achievements */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            07
-          </div>
-
-          <h3>
-            Achievements
-          </h3>
-
-          <p>
-            Add and view your academic and extracurricular achievements.
-          </p>
-
-          <button
-            onClick={() => openModule('achievements')}
-          >
-            My Achievements
-          </button>
-
-        </div>
-
-
-        {/* AI Agent */}
-
-        <div className="dashboard-card ai-card">
-
-          <div className="card-icon">
-            08
-          </div>
-
-          <h3>
-            AI Agent
-          </h3>
-
-          <p>
-            Ask questions and get AI-powered assistance.
-          </p>
-
-          <button
-            onClick={() => openModule('ai-agent')}
-          >
-            Ask AI
-          </button>
-
-        </div>
-
-
-        {/* AI Achievement Assistant */}
-
-        <div className="dashboard-card ai-card">
-
-          <div className="card-icon">
-            09
-          </div>
-
-          <h3>
-            AI Achievement Assistant
-          </h3>
-
-          <p>
-            Get AI assistance to create and improve your achievements.
-          </p>
-
-          <button
-            onClick={() => openModule('ai-achievement')}
-          >
-            Get AI Assistance
-          </button>
-
-        </div>
-
-
-        {/* LMS */}
-
-        <div className="dashboard-card">
-
-          <div className="card-icon">
-            10
-          </div>
-
-          <h3>
-            LMS / Dashboard
-          </h3>
-
-          <p>
-            Access permitted academic and LMS information.
-          </p>
-
-          <button
-            onClick={() => openModule('lms')}
-          >
-            Open LMS
-          </button>
-
-        </div>
+        {cards.map(
+          ([num, title, body, action, key]) => (
+
+            <div
+              className={`dashboard-card${
+                key.startsWith('ai')
+                  ? ' ai-card'
+                  : ''
+              }`}
+              key={key}
+            >
+
+              <div className="card-icon">
+                {num}
+              </div>
+
+              <h3>
+                {title}
+              </h3>
+
+              <p>
+                {body}
+              </p>
+
+              <button
+                onClick={() => openModule(key)}
+              >
+                {action}
+              </button>
+
+            </div>
+
+          )
+        )}
 
       </section>
 

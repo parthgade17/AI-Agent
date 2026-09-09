@@ -4,7 +4,7 @@
 .auth-overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 2147483000;   /* above anything the landing page sets */
 
   display: flex;
   align-items: center;
@@ -25,6 +25,12 @@
 
 .auth-modal {
   position: relative;
+  z-index: 1;
+
+  /* The landing page sets a global font; keep the modal self-contained. */
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  text-align: left;
+  line-height: 1.5;
 
   width: 420px;
   max-width: 100%;

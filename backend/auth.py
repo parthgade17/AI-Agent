@@ -22,6 +22,10 @@ PBKDF2_ROUNDS = 120_000
 
 ROLE_LABELS = {"student": "Student", "faculty": "Teacher", "admin": "HOD"}
 
+# Roles that can be created through the public signup form.
+# Narrow this to {"student"} to close staff self-registration again.
+ROLE_SELF_SIGNUP = {"student", "faculty", "admin"}
+
 
 # --------------------------------------------------------------- passwords
 
@@ -112,10 +116,29 @@ def login(email: str, password: str) -> dict:
 
 # ----------------------------------------------------------------- signup
 
-def register(name: str, email: str, mobile: str, password: str) -> dict:
-    """Create a student account. Staff accounts are seeded, never self-registered."""
-    name, email, mobile = name.strip(), email.strip(), mobile.strip()
+def register(name: str, email: str, mobile: str, password: str,
+             role: str = "student") -> dict:
+    """Create an account.
 
+    Self-registration is open to all three roles. Two rules still hold, both
+    imposed by the database rather than by preference:
+
+      * only one Head of Department can exist at a time, enforced by a partial
+        unique index on faculty.is_hod
+      * users.role = 'admin' and faculty.is_hod must agree, enforced by a
+        trigger, so the faculty row is created here rather than lazily
+
+    If you later want staff registration closed, change ROLE_SELF_SIGNUP below
+    to {"student"} and staff accounts come from seed_users.py again.
+    """
+    name, email, mobile = name.strip(), email.strip(), mobile.strip()
+    role = (role or "student").strip().lower()
+
+    if role not in ROLE_SELF_SIGNUP:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Accounts cannot be created with the role '{role}'",
+        )
     if len(name) < 2:
         raise HTTPException(status_code=400, detail="Please enter your full name")
     if "@" not in email or "." not in email.split("@")[-1]:
@@ -128,10 +151,43 @@ def register(name: str, email: str, mobile: str, password: str) -> dict:
     if db.query_one("SELECT 1 FROM users WHERE lower(email) = lower(%s)", (email,)):
         raise HTTPException(status_code=409, detail="An account with this email already exists")
 
+    # Only one HOD. Check before inserting so the caller gets a readable
+    # message instead of a unique-index violation.
+    if role == "admin":
+        existing = db.query_one(
+            """SELECT u.name, u.email FROM faculty f
+               JOIN users u ON u.id = f.user_id WHERE f.is_hod"""
+        )
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"A Head of Department account already exists "
+                    f"({existing['name']}, {existing['email']}). "
+                    f"Only one HOD account is allowed."
+                ),
+            )
+
     user = db.execute(
         """INSERT INTO users (name, email, mobile, password_hash, role)
-           VALUES (%s, %s, %s, %s, 'student')
+           VALUES (%s, %s, %s, %s, %s)
            RETURNING id, name, email, role""",
-        (name, email, mobile, hash_password(password)),
+        (name, email, mobile, hash_password(password), role),
     )
+
+    dept = db.query_one("SELECT id FROM department WHERE code = 'CSE'")
+    dept_id = dept["id"] if dept else None
+
+    # Create the matching profile row so the portal works on first login.
+    if role == "student":
+        db.execute(
+            "INSERT INTO students (user_id, department_id) VALUES (%s, %s)",
+            (user["id"], dept_id),
+        )
+    else:
+        db.execute(
+            "INSERT INTO faculty (user_id, department_id, is_hod) VALUES (%s, %s, %s)",
+            (user["id"], dept_id, role == "admin"),
+        )
+
     return _issue_token(user)
