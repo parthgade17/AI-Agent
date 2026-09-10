@@ -5,8 +5,9 @@ import type {
   LmsRow, Session, StudentOption, SubjectOption,
 } from '../api'
 import './HodDashboard.css'
+import AiChat from './AiChat'
 
-type Tab = 'dashboard' | 'profile' | 'approvals' | 'achievements' | 'events' | 'lms' | 'faculty'
+type Tab = 'dashboard' | 'profile' | 'approvals' | 'achievements' | 'events' | 'lms' | 'faculty' | 'ai-agent'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
@@ -16,6 +17,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'events', label: 'Add Event' },
   { id: 'lms', label: 'LMS Documents' },
   { id: 'faculty', label: 'Faculty' },
+  { id: 'ai-agent', label: 'AI Agent' },
 ]
 
 function Banner({ kind, text }: { kind: 'ok' | 'err'; text: string }) {
@@ -840,6 +842,28 @@ export default function HodDashboard({ session, onClose }: { session: Session; o
             <div className="hod-card hod-card-faculty">
               <h2>Faculty</h2>
               <FacultyPanel token={session.token} />
+            </div>
+          </section>
+        )}
+
+        {/* ================================================= */}
+        {/* AI AGENT */}
+        {/* ================================================= */}
+
+        {tab === 'ai-agent' && (
+          <section className="hod-content">
+            <div className="hod-card">
+              <h2>AI Agent</h2>
+              <p className="hod-section-description">
+                Ask about faculty, labs, events, achievements, or academics —
+                the agent only answers from the department's own records.
+              </p>
+              <div style={{ marginTop: 20 }}>
+                <AiChat
+                  token={session.token}
+                  placeholder="Ask about faculty, labs, events, achievements, or academics…"
+                />
+              </div>
             </div>
           </section>
         )}

@@ -1,8 +1,8 @@
 """
 CSE Department AI Agent — backend.
 
-Serves authentication, the HOD dashboard, and the student and faculty portals. The RAG endpoints get added on
-top of this later; nothing here needs to change when they do.
+Serves authentication, the HOD dashboard, the student and faculty portals,
+and the shared AI agent chat endpoint (chat_routes.py) used by all three.
 
 Run:  uvicorn app:app --reload --port 8000
 """
@@ -18,6 +18,7 @@ from hod_routes import router as hod_router
 from student_routes import router as student_router
 from faculty_routes import router as faculty_router
 from public_routes import router as public_router
+from chat_routes import router as chat_router
 
 app = FastAPI(title="CSE Department AI Agent")
 
@@ -39,6 +40,7 @@ app.include_router(hod_router)
 app.include_router(student_router)
 app.include_router(faculty_router)
 app.include_router(public_router)
+app.include_router(chat_router)
 
 # Department photographs. Files live in backend/static/gallery/ and are
 # referenced from the media table by filename only.

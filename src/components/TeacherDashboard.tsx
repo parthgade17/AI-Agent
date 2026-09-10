@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { facultyApi } from '../api'
 import type { Session } from '../api'
 import './TeacherDashboard.css'
+import AiChat from './AiChat'
 
 type TeacherDashboardProps = {
   session: Session
@@ -2893,8 +2894,21 @@ function TeacherDashboard({
               </h2>
 
               <p className="section-description">
-                AI-powered tools for organizing and
-                understanding achievement data.
+                Ask the department AI agent about faculty, labs, events,
+                achievements, or academics — it only answers from the
+                department's own records.
+              </p>
+
+              <div style={{ marginTop: 16, marginBottom: 28 }}>
+                <AiChat
+                  token={token}
+                  placeholder="Ask about faculty, labs, events, achievements, or academics…"
+                />
+              </div>
+
+              <p className="section-description">
+                Local tools for organizing and understanding your own
+                achievement data.
               </p>
 
 

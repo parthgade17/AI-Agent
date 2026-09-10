@@ -1,0 +1,596 @@
+[
+  {
+    "id": "chunk_001",
+    "text": "The CSE Department laboratories run entirely on open-source software stacks,\nare supported by high-speed internet connectivity and smart boards, and remain\naccessible to students 24x7 for project and research work outside scheduled\npractical sessions.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "overview",
+      "24x7 access"
+    ]
+  },
+  {
+    "id": "chunk_002",
+    "text": "Facilities at a glance: Computer Vision Laboratory (120 computers) for computer\nvision, image processing and real-time societal computing projects. Data Science\nLaboratory (120 computers) for data science, analytics and hyperspectral imaging\nresearch under the Centre of Excellence. Advanced Computing Laboratories\n(high-performance GPU systems) for machine learning, neural networks and deep\nlearning workloads. Data Science and Analytics Laboratories for analytics\ncoursework and project-based learning. Robotics and Automation Laboratories for\nembedded systems and automation projects. Smart Classrooms with smart-board-enabled\ninstruction and internet connectivity.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "facilities list",
+      "capacity"
+    ]
+  },
+  {
+    "id": "chunk_003",
+    "text": "Common standards across all laboratories: round-the-clock (24x7) access for\nstudents working on projects and research; high-speed internet connectivity in\nevery lab; smart boards installed for instruction and demonstration; all software\nused is open source (licence-free and reproducible); uniform hardware configuration\nacross the two flagship labs (Computer Vision and Data Science) simplifying\ndeployment and administration.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "standards",
+      "policy"
+    ]
+  },
+  {
+    "id": "chunk_004",
+    "text": "Computer Vision Laboratory specification: 120 total computers, Ubuntu 24.04 LTS,\nhardware model Micro-Star International Co. Ltd. MS-7E44, 12th Gen Intel Core\ni5-12400F processors, 16.0 GiB memory. Software installed: Anaconda IDE, Jupyter,\nPython, Eclipse IDE (all open source). Access is 24x7 with high-speed internet and\nsmart boards.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "computer vision lab",
+      "spec"
+    ]
+  },
+  {
+    "id": "chunk_005",
+    "text": "The Computer Vision Laboratory houses state-of-the-art computers with high\ncomputing power used to solve real-time societal computing problems. The department\nhas received more than 13 real-time datasets from National Chung Cheng University,\nTaiwan, under the Centre of Excellence (CoE). Projects currently in the\nimplementation phase in this lab: image-based SCR (Sickle-Cell Retinopathy)\ndetection; segmentation of garbage from drone imagery (quantity and\ncharacterisation); VR by hologram; tracking Shirdi traffic (people, vehicles and\nother objects); face, gender and age recognition using IR cameras.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "computer vision lab",
+      "projects"
+    ]
+  },
+  {
+    "id": "chunk_006",
+    "text": "Data Science Laboratory specification: 120 total computers, Ubuntu 24.04 LTS,\nhardware model Micro-Star International Co. Ltd. MS-7E44, 12th Gen Intel Core\ni5-12400F processors, 16.0 GiB memory. Software installed: Anaconda IDE, Jupyter,\nPython, Eclipse IDE. Access is 24x7 with high-speed internet and a smart board.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "data science lab",
+      "spec"
+    ]
+  },
+  {
+    "id": "chunk_007",
+    "text": "The Data Science Laboratory hosts a Centre of Excellence sponsored by\nHitSpectra Pvt. Ltd., Taiwan. Under this arrangement the laboratory has received 13\nprojects in the data science domain for processing in hyperspectral imaging with\ncolour science. Sponsoring partner: HitSpectra Pvt. Ltd., Taiwan. Research focus:\nhyperspectral imaging with colour science. Datasets: 13+ real-time datasets from\nNational Chung Cheng University, Taiwan.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "data science lab",
+      "centre of excellence",
+      "hitspectra"
+    ]
+  },
+  {
+    "id": "chunk_008",
+    "text": "In addition to the two flagship laboratories (Computer Vision and Data\nScience), the department maintains: Advanced Computing Laboratories with\nhigh-performance GPUs; Robotics and Automation Laboratories. The laboratories\nsupport three overlapping activities: regular subject practicals prescribed by the\ncurriculum; sponsored research work arising from the Centre of Excellence and the\nInnovation Incubation Centre; and independent student projects including hackathon\nand competition preparation. The 24x7 access policy exists specifically to make the\nsecond and third categories possible without displacing scheduled teaching. Every\nlaboratory runs Ubuntu 24.04 LTS with an entirely open-source toolchain, including\nAnaconda IDE, Jupyter, Python and Eclipse IDE, plus supporting libraries for\ncomputer vision, machine learning and data analytics work.",
+    "section": "infrastructure",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Laboratories and Infrastructure, CSE-INFRA-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "additional labs",
+      "software environment"
+    ]
+  },
+  {
+    "id": "chunk_009",
+    "text": "Department identity: Computer Science and Engineering, School of Engineering\nand Technology, Sanjivani University, Kopargaon, Maharashtra, India. Reporting\nperiod: September 2025 to August 2026 (Academic Year 2025-26). Curriculum partner:\nHCLTech. International partners: Hitspectra Intelligence Technology, Taiwan;\nNational Chung Cheng University, Taiwan.",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "identity",
+      "overview"
+    ]
+  },
+  {
+    "id": "chunk_010",
+    "text": "Key highlights 2025-26: Competition awards - First Prize at Micromouse (IIT\nGuwahati), First Runner-Up at TechDeviathon 2026 (Chennai), Third Prize at\nIInnoYudh 2K25 (Visakhapatnam), Best Solution Award at Hackwave 2.0 (Indore).\nInternational internships - 4 students at National Chung Cheng University, Taiwan\nand Ural Federal University, Russia. National internships - 2 students at IIT\n(BHU), Varanasi. Global certifications - 12 students SAP Global Certified, 3\nstudents cleared Goethe-Zertifikat A1 German exam. International centres - Centre\nof Excellence with Hitspectra Intelligence Technology, Taiwan; Innovation\nIncubation Centre with National Chung Cheng University, Taiwan. Curriculum -\nHCLTech-powered syllabus with core courses in Prompt Engineering and Agentic AI.\nPlacements - GB Tech (Mumbai), Teqsys Pvt. Ltd. (Mumbai), Techotlist Connects Pvt.\nLtd. (Hyderabad), highest package 10 LPA. Entrepreneurship - Prenaya Softtech\nSolutions founded by a current B.Tech. student.",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "highlights summary"
+    ]
+  },
+  {
+    "id": "chunk_011",
+    "text": "The department delivers an industry co-created curriculum developed in\nassociation with HCLTech, branded \"Career Shaper for Sanjivani University\". The\nsyllabus is periodically reviewed against current industry practice so graduates\nenter the workforce with skills employers are actively hiring for. Emerging\ntechnology core courses (core, not elective): Prompt Engineering; Agentic\nArtificial Intelligence; Machine Learning, Neural Networks and Computer Vision;\nData Science and Analytics.",
+    "section": "curriculum",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "hcltech",
+      "core courses",
+      "syllabus"
+    ]
+  },
+  {
+    "id": "chunk_012",
+    "text": "Centre of Excellence — Hitspectra Intelligence Technology, Taiwan: provides\nstudents and faculty access to advanced research problems, industrial mentorship\nand collaborative project opportunities with an international technology partner.\nInnovation Incubation Centre — National Chung Cheng University, Taiwan: supports\nstudent-led innovation, prototype development and early-stage venture building, and\nforms the institutional basis for the sponsored research internships at NCCU.",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "centre of excellence",
+      "international collaboration"
+    ]
+  },
+  {
+    "id": "chunk_013",
+    "text": "International guest sessions: Dr. Mahendra Gawali (HOD, CSE) delivered an\nexpert session on Machine Learning, Neural Networks and Convolutional Neural\nNetworks at Ural Federal University, Russia, drawing an international audience\nfrom India, Armenia, Belarus, Chile, China, Jordan, South Africa and Sri Lanka.\nProf. (Dr.) Abhijit Tarawade of Tashkent University conducted an international\nsession for department students on global research directions and higher\neducation pathways in Central Asia.",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "guest lecture",
+      "international session"
+    ]
+  },
+  {
+    "id": "chunk_014",
+    "text": "i-Connect programme: Mr. Chandrashekhar Shukla, Founder and CEO of Codenixia\nPvt. Ltd., Pune, conducted a hands-on DevOps workshop (\"Code Smart, Automate\nFaster, Deliver Better!\") on 30 March 2026 at 304 Lab, covering contemporary\ndeployment pipelines and industry tooling. MyStory Board alumni visits: Mr. Pankaj\nVargude (Team Leader, Data Analytics, Atlas Copco Pvt. Ltd., Pune); Mr. Sai Abhale\n(Project Lead, KOGNiX Pvt. Ltd., Pune); Mr. Raghvendra Naidu (Project Manager, Sai\nComptech Pvt. Ltd., Kopargaon); Mr. Asad Shaikh (Data Engineer, Celebal\nTechnologies, Pune).",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "industry connect",
+      "alumni",
+      "mystory board"
+    ]
+  },
+  {
+    "id": "chunk_015",
+    "text": "Prof. Ajit Jaokar conducted a Sanjivani Thought Leader Session for department\nstudents on developments in artificial intelligence and implications for\nearly-career engineers. The department hosted a project competition with Dr.\nChandra Kambhamettu as chief guest, an internationally recognised researcher, giving\nstudents the opportunity to present work and receive feedback.",
+    "section": "department",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "thought leader session",
+      "project competition"
+    ]
+  },
+  {
+    "id": "chunk_016",
+    "text": "Indian Knowledge Systems (IKS) field activity: gave students exposure to\nIndia's multi-religious heritage landscape and its engineering/design traditions.\nLearning objectives: rock-cut engineering and construction logistics; aesthetics,\niconography and ritual space design (Sthapatya Shastra and Silpa traditions);\ncultural synthesis across Buddhist, Hindu and Jain traditions; site planning, water\nmanagement on a basalt escarpment, and conservation awareness. Third Year\nParent-Teacher Meeting strengthened collaboration between parents and faculty,\ngiving parents insight into academic culture and support systems, and reinforcing\na shared foundation for students' academic growth.",
+    "section": "events",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "IKS",
+      "parent teacher meeting",
+      "student engagement"
+    ]
+  },
+  {
+    "id": "chunk_017",
+    "text": "First Prize — Micromouse event, IIT Guwahati: a Sanjivani University team\nsecured Rank 1, designing and building an autonomous maze-solving robot, testing\napplied knowledge in robotics, embedded systems and algorithmic problem solving\nunder national-level competitive conditions.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "micromouse",
+      "iit guwahati",
+      "robotics"
+    ]
+  },
+  {
+    "id": "chunk_018",
+    "text": "First Runner-Up — TechDeviathon 2026, Panimalar Engineering College, Chennai:\nMs. Bhakti Bawake and Ms. Gargi Joshi (CSE Department), working with Ms.\nSaishraddha Salmuthe (Sanjivani Junior College), secured First Runner-Up in the\nE-Waste Management domain, earning a cash prize of ₹50,000.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "techdeviathon",
+      "e-waste management",
+      "hackathon"
+    ]
+  },
+  {
+    "id": "chunk_019",
+    "text": "Third Prize — IInnoYudh 2K25 National Level Hackathon, NSRIT, Visakhapatnam:\ndepartment students secured Third Prize competing against teams from institutions\nacross the country. Best Solution Award — Hackwave 2.0, Chameli Devi Group of\nInstitutions, Indore: a departmental team received the Best Solution Award in\nrecognition of the practicality and technical strength of their solution.\nParticipation — National Hackathon, Chaitanya Bharathi Institute of Technology\n(CBIT), Hyderabad: students gained exposure to competitive problem statements and\nindustry evaluation panels.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "iinnoyudh",
+      "hackwave",
+      "cbit hackathon"
+    ]
+  },
+  {
+    "id": "chunk_020",
+    "text": "Blind Coding Competition: organised by the CSE Department with the ACE\nAssociation to mark the birthday week of Hon'ble Chairman Shri. Nitin Dada Kolhe\nSaheb. Held 16 September 2025, 5:00 PM, in the CSE Lab. Participants wrote\nfunctional C++ or Java programs without viewing the monitor, within a 20-minute\ntime limit. Contacts: Akanksha Naik (+91 8830122084), Yashvardhan Shinde\n(+91 7588529311).",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "blind coding competition",
+      "ace association"
+    ]
+  },
+  {
+    "id": "chunk_021",
+    "text": "Fully sponsored research internships (3-6 months) at National Chung Cheng\nUniversity, Taiwan: Ms. Ishwari Shrikrushna Pawar, Mr. Shrikant Ashok Pawar, Mr.\nSanket Changdeo Jundhare. Students receive a monthly stipend of 15,000 New Taiwan\nDollars, with all expenses (travel, accommodation, daily necessities) borne by the\nGovernment of Taiwan, per the MoU with National Chung Cheng University.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "nccu internship",
+      "taiwan",
+      "sponsored research"
+    ]
+  },
+  {
+    "id": "chunk_022",
+    "text": "International Research Internship, Ural Federal University, Russia: Ms.\nIshwari Shrikrishna Pawar selected for a fully funded 15-day research internship,\na second international research engagement for her. Summer Research Internship,\nIIT (BHU) Varanasi: two third-year students, Mr. Yuvraj Sanjay Vikhe and Mr.\nSameer Pradeep Jadhav, selected for a three-month internship in Biomedical Signal\nand Image Processing under the guidance of Dr. Jack Fredo A. R.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "ural federal university",
+      "iit bhu"
+    ]
+  },
+  {
+    "id": "chunk_023",
+    "text": "SAP Global Certification: 12 students of the CSE Department completed the SAP\nGlobal Certification — Gauri Dhangar, Vaishnavi Shewale, Tejal Suryawanshi,\nSanjana Jadhav, Sakshi Shinde, Gayatri Mahale, Uday Kharse, Tejas Gadhave, Om\nBorse, Vaibhav Ahire, Gaurav Sadawarte, Hemant Shejwal.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "sap certification"
+    ]
+  },
+  {
+    "id": "chunk_024",
+    "text": "Goethe-Zertifikat A1 German examination — first cohort at Sanjivani\nUniversity to clear it: Ms. Gargi Shelke (90/100), Ms. Avani Kulkarni (73/100), Mr.\nRaj Somvanshi (60/100). Achieved under the guidance of Ms. Riya Khandelwal, German\nLanguage Trainer.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "goethe zertifikat",
+      "german"
+    ]
+  },
+  {
+    "id": "chunk_025",
+    "text": "Placements 2025-26: Ms. Priya Laxman Deshmukh — GB Tech, Mumbai (placement).\nMr. Aditya Shinde — Teqsys Pvt. Ltd., Mumbai (internship with pre-placement\noffer). Mr. Yuvraj Vikhe (Batch 2027) — Techotlist Connects Pvt. Ltd., Hyderabad\n(placement, CTC 10 LPA, the highest package of the reporting period).",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "placements"
+    ]
+  },
+  {
+    "id": "chunk_026",
+    "text": "Entrepreneurship: Mr. Yashvardhan Shinde, a current B.Tech. student of the\nCSE Department, established and opened the office of his own venture, Prenaya\nSofttech Solutions (Sai Kuber City, Kopargaon), offering ERP, CRM, billing, mobile\napps, e-commerce, web development, digital marketing and AI integration\nsolutions.",
+    "section": "achievements",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Student Achievements, CSE-ACHV-2025-26",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "entrepreneurship",
+      "prenaya softtech"
+    ]
+  },
+  {
+    "id": "chunk_027",
+    "text": "Dr. Mahendra B. Gawali — Head of Department (HOD), CSE. Qualification: BE\n(Computer), ME (Computer), PhD (IT), Postdoc (USA), LLB. Experience: 18 years\nteaching. Areas of research: Digital Twin, Reinforcement Learning, Cloud\nComputing, Optimization, Machine Learning. Achievement: awarded Best Department\nLeader (HoD) on the 2nd Foundation Day of Sanjivani University, 18 April 2026.\nDelivered an invited session on \"Machine Learning, Neural Networks and CNN\" at\nUral Federal University, Russia, with an international audience (Happiness Index\n85.7%). Has 32 research papers across journals and conferences (e.g. Knowledge and\nInformation Systems, Knowledge-Based Systems, Journal of Cloud Computing) and is\nguiding 8 PhD/research candidates (theses not yet submitted). Research grants:\nNIL.",
+    "section": "faculty",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Faculty Profiles, A.Y. 2024-2025",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "HOD",
+      "Mahendra Gawali",
+      "research profile"
+    ]
+  },
+  {
+    "id": "chunk_028",
+    "text": "Mr. Siddhesh Bramhane — Assistant Professor, CSE Department, Sanjivani\nUniversity. Date of joining: 2 February 2026. Employee ID: 2101091T. Email:\nsiddeshbramhaneset@sanjivani.edu.in. Qualification: PG. Total experience: 8 months\n(Education 6 months, Industry 2 months). Interaction with professional\ninstitutions: VJTI. No papers, patents, or books published yet (early-career\nappointment).",
+    "section": "faculty",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Faculty Profiles, A.Y. 2024-2025",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "Siddhesh Bramhane",
+      "assistant professor"
+    ]
+  },
+  {
+    "id": "chunk_029",
+    "text": "Ms. Jyotimoyee Kalita — Assistant Professor, Computer Science and Engineering,\nSanjivani University. Date of joining: 26 July 2025. Employee ID: 2101032. Email:\njyotimoyeekalitaset@sanjivani.edu.in. Qualification: B.Tech (7.99 CGPA, 1st Class),\nM.Tech (8.42 CGPA, 1st Class). Total experience: 1 year (education). Membership:\nOracle Academy. Awards: Chemistry Olympiad, National Talent Search Examination.",
+    "section": "faculty",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Faculty Profiles, A.Y. 2024-2025",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "Jyotimoyee Kalita",
+      "assistant professor"
+    ]
+  },
+  {
+    "id": "chunk_030",
+    "text": "Dr. Nitin R. Chopde — Associate Professor, Computer Science & Engineering,\nSanjivani University. Date of joining: 26 June 2025. Employee ID: 2101061T. Email:\nnitinchopdeset@sanjivani.edu.in. Qualification: B.E. (Computer Engg, 1st Class),\nM.E. (Computer Engg, 1st Class), PhD (Computer Science & Engineering). Total\nexperience: 19 years (Education 16.5, Industry 2.5). Publications: 15 conference,\n8 Scopus, 44 non-Scopus papers. PhD Co-Guide for CSE/AIDS at G H Raisoni\nUniversity, Amravati. Guided 32 UG and 26 PG projects, 1 PhD. Published 1 book, 6\npatents published. Membership in ISTE, IFERP, IAENG, ABCD, CETA, SIAM, ISFSEA.\nInteractions with VNIT Nagpur, NIT Kurukshetra, IIT Bombay, VIT Nagpur, GHRCE\nNagpur, Sahyadri COE Mangalore, YCCE Nagpur, Symbiosis Pune.",
+    "section": "faculty",
+    "scope": "department",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ],
+    "source": "CSE Faculty Profiles, A.Y. 2024-2025",
+    "last_updated": "2026-08-01",
+    "tags": [
+      "Nitin Chopde",
+      "associate professor"
+    ]
+  },
+  {
+    "section": "department",
+    "title": "Message from the Head of Department",
+    "text": "Message from the Head of Department, Dr. Mahendra B. Gawali, Department of Computer Science and Engineering, Sanjivani University. The 21st century is known as the technical era, and Computer Science is one of the core fields most impacted by this rapid transformation. Keeping these versatile needs in mind, Sanjivani University established the Department of Computer Science and Engineering in 2024. The department has highly qualified faculty members, fully digitally equipped classrooms, and state-of-the-art laboratories. It follows all rules and regulations laid down by NEP-2020, with flexibility to meet industry requirements and choice-based subject selection.",
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ]
+  },
+  {
+    "section": "department",
+    "title": "Department Vision",
+    "text": "Vision of the Department of Computer Science and Engineering: To achieve global recognition in the field of computer science and engineering through an innovative curriculum and quality in Education, Research, Innovation and Entrepreneurship, producing effective leaders who serve societal challenges.",
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ]
+  },
+  {
+    "section": "department",
+    "title": "Department Mission",
+    "text": "Mission of the Department of Computer Science and Engineering. First, to provide a platform for students to become industry ready technocrats as full stack developers, through a curriculum tailored to industry needs with a focus on complex problem-solving skills. Second, to impart high quality experiential learning in modern software tools and to meet the real-time requirements of industry. Third, to develop quality research, both national and international, enhancing learning through a strong research ecosystem. Fourth, to promote a supportive and positive community through initiatives that contribute to societal well-being and fulfil institutional social responsibility.",
+    "source": "CSE Department Profile and Highlights, CSE-DEPT-2025-26",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ]
+  },
+  {
+    "section": "faculty",
+    "title": "Ms. Sapna Malviya",
+    "text": "Ms. Sapna Malviya — Assistant Professor, Department of Computer Science and Engineering, Sanjivani University. Employee ID 2101098T. Date of joining: 09 March 2026. Total experience: 4 years, comprising 2 years in education and 2 years in industry. Academic record: UG 8.90 CGPA, PG 8.72 CGPA. Publications and outcomes: one book published and one patent published.",
+    "source": "CSE Faculty Profiles, A.Y. 2024-2025",
+    "audience": [
+      "student",
+      "faculty",
+      "admin",
+      "administrator"
+    ]
+  }
+]

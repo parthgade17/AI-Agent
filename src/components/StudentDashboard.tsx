@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { studentApi } from '../api'
 import type { PublicEvent, Session, LabRow, AnnouncementRow } from '../api'
@@ -7,6 +6,7 @@ import './StudentDashboard.css'
 import ProfileSection from './ProfileSection'
 import AchievementSection from './AchievementSection'
 import LMSSection from './LMSSection'
+import AiChat from './AiChat'
 
 interface Props {
   session: Session
@@ -348,10 +348,27 @@ function StudentDashboard({ session, onSignOut }: Props) {
     ),
 
     'ai-agent': (
-      <ComingSoon
-        title="AI Agent"
-        label="06 · AI AGENT"
-      />
+      <section className="student-module">
+
+        <span className="student-module-label">
+          06 · AI AGENT
+        </span>
+
+        <h2>AI Agent</h2>
+
+        <p>
+          Ask about faculty, labs, events, achievements, or academics — the
+          agent only answers from the department's own records.
+        </p>
+
+        <div style={{ marginTop: 20 }}>
+          <AiChat
+            token={token}
+            placeholder="Ask about faculty, labs, events, achievements, or academics…"
+          />
+        </div>
+
+      </section>
     ),
   }
 

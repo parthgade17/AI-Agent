@@ -614,3 +614,71 @@ export const publicApi = {
   events:        () => publicRequest<PublicEvents>('/events'),
   announcements: () => publicRequest<AnnouncementRow[]>('/announcements'),
 }
+
+/* --------------------------------------------------------------- CHAT API */
+/* The AI Agent. One endpoint, shared by every role — the backend resolves
+   which knowledge-base documents a role may see, not the frontend. */
+
+async function chatRequest<T>(
+  path: string,
+  token: string,
+  method = 'GET',
+  body?: unknown,
+): Promise<T> {
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}/api/chat${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new Error('Cannot reach the server. Is the backend running on port 8000?')
+  }
+  if (!res.ok) {
+    let detail = `Request failed (${res.status})`
+    try {
+      const d = await res.json()
+      if (d?.detail) detail = typeof d.detail === 'string' ? d.detail : JSON.stringify(d.detail)
+    } catch { /* no body */ }
+    throw new Error(detail)
+  }
+  return res.json() as Promise<T>
+}
+
+export interface ChatAskResponse {
+  answer: string
+  sources: string[]
+  conversation_id: number | null
+  grounded: boolean
+  retrieved: number
+  latency_ms: number
+  model: string
+}
+
+export interface ChatMessageRow {
+  role: 'user' | 'assistant'
+  content: string
+  sources: string[] | null
+  answered: boolean | null
+  created_at: string
+}
+
+export interface ChatConversationRow {
+  id: number
+  title: string | null
+  message_count: number
+  started_at: string
+  last_message_at: string
+}
+
+export const chatApi = {
+  ask: (t: string, question: string, conversationId?: number | null) =>
+    chatRequest<ChatAskResponse>('/ask', t, 'POST', {
+      question,
+      conversation_id: conversationId ?? null,
+    }),
+  conversations: (t: string) => chatRequest<ChatConversationRow[]>('/conversations', t),
+  history: (t: string, conversationId: number) =>
+    chatRequest<ChatMessageRow[]>(`/conversations/${conversationId}`, t),
+}
