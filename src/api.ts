@@ -100,6 +100,15 @@ export interface HodProfile {
   scholars: { id: number; name: string; topic: string | null; status: string }[]
 }
 
+export interface ApproveResult {
+  ok: boolean
+  published: string
+  record_id: number
+  message?: string
+  whatsapp_url?: string
+  groups?: string[]
+}
+
 export interface Draft {
   id: number
   title: string
@@ -188,7 +197,12 @@ export const hodApi = {
   editDraft:  (t: string, id: number, data: { title?: string; body?: string }) =>
                 hodRequest<{ ok: boolean }>(`/approvals/${id}`, t, 'PATCH', data),
   approve:    (t: string, id: number) =>
-                hodRequest<{ ok: boolean }>(`/approvals/${id}/approve`, t, 'POST'),
+                hodRequest<ApproveResult>(`/approvals/${id}/approve`, t, 'POST'),
+  regenerate: (t: string, id: number) =>
+                hodRequest<{ ok: boolean; body: string; written_by: string }>(
+                  `/approvals/${id}/regenerate`, t, 'POST'),
+  whatsappGroups: (t: string) =>
+                hodRequest<{ groups: string[] }>('/whatsapp-groups', t),
   reject:     (t: string, id: number) =>
                 hodRequest<{ ok: boolean }>(`/approvals/${id}/reject`, t, 'POST'),
 
@@ -614,10 +628,33 @@ export const publicApi = {
   events:        () => publicRequest<PublicEvents>('/events'),
   announcements: () => publicRequest<AnnouncementRow[]>('/announcements'),
 }
-
 /* --------------------------------------------------------------- CHAT API */
-/* The AI Agent. One endpoint, shared by every role — the backend resolves
-   which knowledge-base documents a role may see, not the frontend. */
+
+export interface ChatAnswer {
+  answer: string
+  sources: string[]
+  conversation_id: number | null
+  grounded: boolean
+  retrieved: number
+  latency_ms: number
+  model: string
+}
+
+export interface ChatConversation {
+  id: number
+  title: string | null
+  message_count: number
+  started_at: string
+  last_message_at: string
+}
+
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+  sources: string[] | null
+  answered: boolean | null
+  created_at: string
+}
 
 async function chatRequest<T>(
   path: string,
@@ -646,39 +683,13 @@ async function chatRequest<T>(
   return res.json() as Promise<T>
 }
 
-export interface ChatAskResponse {
-  answer: string
-  sources: string[]
-  conversation_id: number | null
-  grounded: boolean
-  retrieved: number
-  latency_ms: number
-  model: string
-}
-
-export interface ChatMessageRow {
-  role: 'user' | 'assistant'
-  content: string
-  sources: string[] | null
-  answered: boolean | null
-  created_at: string
-}
-
-export interface ChatConversationRow {
-  id: number
-  title: string | null
-  message_count: number
-  started_at: string
-  last_message_at: string
-}
-
 export const chatApi = {
-  ask: (t: string, question: string, conversationId?: number | null) =>
-    chatRequest<ChatAskResponse>('/ask', t, 'POST', {
-      question,
-      conversation_id: conversationId ?? null,
-    }),
-  conversations: (t: string) => chatRequest<ChatConversationRow[]>('/conversations', t),
-  history: (t: string, conversationId: number) =>
-    chatRequest<ChatMessageRow[]>(`/conversations/${conversationId}`, t),
+  ask: (t: string, question: string, conversation_id?: number | null) =>
+    chatRequest<ChatAnswer>('/ask', t, 'POST', { question, conversation_id }),
+
+  conversations: (t: string) =>
+    chatRequest<ChatConversation[]>('/conversations', t),
+
+  history: (t: string, id: number) =>
+    chatRequest<ChatTurn[]>(`/conversations/${id}`, t),
 }

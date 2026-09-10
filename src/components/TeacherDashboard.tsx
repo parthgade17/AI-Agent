@@ -493,7 +493,7 @@ function TeacherDashboard({
       return
     }
 
-    if (!FACULTY_CATEGORIES.includes(achievementForm.category)) {
+    if (!FACULTY_CATEGORIES.includes(achievementForm.category.trim().toLowerCase())) {
       setAchievementMessage(
         `Category must be one of: ${FACULTY_CATEGORIES.join(', ')}`,
       )
@@ -571,7 +571,7 @@ function TeacherDashboard({
       return
     }
 
-    if (!STUDENT_CATEGORIES.includes(category)) {
+    if (!STUDENT_CATEGORIES.includes(category.trim().toLowerCase())) {
       setStudentAchievementMessage(
         `Category must be one of: ${STUDENT_CATEGORIES.join(', ')}`,
       )
@@ -1767,31 +1767,35 @@ function TeacherDashboard({
                     Select category
                   </option>
 
-                  <option value="Academic">
-                    Academic
+                  <option value="publication">
+                    Publication
                   </option>
 
-                  <option value="Research">
-                    Research
+                  <option value="patent">
+                    Patent
                   </option>
 
-                  <option value="Teaching">
-                    Teaching
+                  <option value="grant">
+                    Research Grant
                   </option>
 
-                  <option value="Award">
+                  <option value="award">
                     Award
                   </option>
 
-                  <option value="Certification">
+                  <option value="invited_talk">
+                    Invited Talk
+                  </option>
+
+                  <option value="certification">
                     Certification
                   </option>
 
-                  <option value="Competition">
-                    Competition
+                  <option value="book">
+                    Book
                   </option>
 
-                  <option value="Other">
+                  <option value="other">
                     Other
                   </option>
 
@@ -2378,27 +2382,47 @@ function TeacherDashboard({
                     Select category
                   </option>
 
-                  <option value="Academic">
-                    Academic
+                  <option value="hackathon">
+                    Hackathon
                   </option>
 
-                  <option value="Sports">
-                    Sports
-                  </option>
-
-                  <option value="Competition">
+                  <option value="competition">
                     Competition
                   </option>
 
-                  <option value="Certification">
+                  <option value="coding">
+                    Coding
+                  </option>
+
+                  <option value="sports">
+                    Sports
+                  </option>
+
+                  <option value="research">
+                    Research
+                  </option>
+
+                  <option value="certification">
                     Certification
                   </option>
 
-                  <option value="Cultural">
-                    Cultural
+                  <option value="internship">
+                    Internship
                   </option>
 
-                  <option value="Other">
+                  <option value="placement">
+                    Placement
+                  </option>
+
+                  <option value="entrepreneurship">
+                    Entrepreneurship
+                  </option>
+
+                  <option value="academic">
+                    Academic
+                  </option>
+
+                  <option value="other">
                     Other
                   </option>
 

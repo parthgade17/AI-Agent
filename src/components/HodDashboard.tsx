@@ -149,7 +149,15 @@ function ApprovalsPanel({ token }: { token: string }) {
   const [drafts, setDrafts] = useState<Draft[]>([])
   const [editId, setEditId] = useState<number | null>(null)
   const [text, setText] = useState('')
+  const [busyId, setBusyId] = useState<number | null>(null)
   const [msg, setMsg] = useState({ kind: 'ok' as 'ok' | 'err', text: '' })
+
+  // Set after an approval, so the HOD can send the message straight away.
+  const [sendNow, setSendNow] = useState<{
+    message: string
+    whatsapp_url: string
+    groups: string[]
+  } | null>(null)
 
   const load = useCallback(() => {
     hodApi.drafts(token).then(setDrafts).catch((e) => setMsg({ kind: 'err', text: e.message }))
@@ -157,19 +165,96 @@ function ApprovalsPanel({ token }: { token: string }) {
 
   useEffect(load, [load])
 
-  async function act(fn: Promise<unknown>, ok: string) {
+  async function act(fn: Promise<unknown>, ok: string, id?: number) {
+    setBusyId(id ?? null)
     try { await fn; setMsg({ kind: 'ok', text: ok }); setEditId(null); load() }
     catch (e) { setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Failed' }) }
+    setBusyId(null)
+  }
+
+  async function approve(id: number) {
+    setBusyId(id)
+    try {
+      const r = await hodApi.approve(token, id)
+      setMsg({ kind: 'ok', text: 'Approved and published.' })
+      // The backend returns the approved text and a WhatsApp share link.
+      if (r.whatsapp_url) {
+        setSendNow({
+          message: r.message ?? '',
+          whatsapp_url: r.whatsapp_url,
+          groups: r.groups ?? [],
+        })
+      }
+      setEditId(null)
+      load()
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Failed' })
+    }
+    setBusyId(null)
+  }
+
+  async function regenerate(id: number) {
+    setBusyId(id)
+    try {
+      const r = await hodApi.regenerate(token, id)
+      setMsg({
+        kind: 'ok',
+        text: r.written_by === 'template'
+          ? 'Rewritten from the template — the AI was unavailable.'
+          : `Rewritten by ${r.written_by}.`,
+      })
+      load()
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Failed' })
+    }
+    setBusyId(null)
   }
 
   return (
     <div>
       <Banner kind={msg.kind} text={msg.text} />
+
       <p className="hod-muted hod-small hod-note">
-        Every achievement and event you add generates a draft announcement here. Review
-        the wording, edit if needed, then approve — approving also publishes the linked
-        record to the department page.
+        Achievements and events submitted by faculty arrive here as AI-written
+        announcements. Review the wording, rewrite or edit it if needed, then
+        approve — approving publishes the record to the department page and
+        releases the message for sending.
       </p>
+
+      {/* Shown once, right after an approval */}
+      {sendNow && (
+        <div className="hod-send-panel">
+          <div className="hod-send-head">
+            <strong>Approved. Send it to the CSE groups.</strong>
+            <button className="hod-close" onClick={() => setSendNow(null)}>&times;</button>
+          </div>
+
+          <pre className="hod-draft-body">{sendNow.message}</pre>
+
+          {sendNow.groups.length > 0 && (
+            <p className="hod-muted hod-small">
+              Send to: {sendNow.groups.join(' · ')}
+            </p>
+          )}
+
+          <div className="hod-actions">
+            <a className="hod-btn hod-btn-wa" href={sendNow.whatsapp_url}
+               target="_blank" rel="noopener noreferrer">
+              Open WhatsApp with this message
+            </a>
+            <button className="hod-btn-ghost" onClick={() => {
+              navigator.clipboard?.writeText(sendNow.message)
+              setMsg({ kind: 'ok', text: 'Message copied.' })
+            }}>
+              Copy text
+            </button>
+          </div>
+
+          <p className="hod-muted hod-small">
+            WhatsApp opens with the message ready. Pick the CSE groups and send.
+          </p>
+        </div>
+      )}
 
       {!drafts.length && <p className="hod-muted">No drafts waiting for approval.</p>}
 
@@ -195,24 +280,28 @@ function ApprovalsPanel({ token }: { token: string }) {
           <div className="hod-actions">
             {editId === d.id ? (
               <>
-                <button className="hod-btn" onClick={() =>
-                  act(hodApi.editDraft(token, d.id, { body: text }), 'Draft updated.')}>
+                <button className="hod-btn" disabled={busyId === d.id} onClick={() =>
+                  act(hodApi.editDraft(token, d.id, { body: text }), 'Draft updated.', d.id)}>
                   Save draft
                 </button>
                 <button className="hod-btn-ghost" onClick={() => setEditId(null)}>Cancel</button>
               </>
             ) : (
               <>
-                <button className="hod-btn" onClick={() =>
-                  act(hodApi.approve(token, d.id), 'Approved and published.')}>
-                  Approve &amp; publish
+                <button className="hod-btn" disabled={busyId === d.id}
+                        onClick={() => approve(d.id)}>
+                  {busyId === d.id ? 'Working…' : 'Approve & send'}
+                </button>
+                <button className="hod-btn-ghost" disabled={busyId === d.id}
+                        onClick={() => regenerate(d.id)}>
+                  {busyId === d.id ? 'Rewriting…' : 'Rewrite with AI'}
                 </button>
                 <button className="hod-btn-ghost"
                         onClick={() => { setEditId(d.id); setText(d.body) }}>
                   Edit
                 </button>
-                <button className="hod-btn-danger" onClick={() =>
-                  act(hodApi.reject(token, d.id), 'Draft rejected.')}>
+                <button className="hod-btn-danger" disabled={busyId === d.id} onClick={() =>
+                  act(hodApi.reject(token, d.id), 'Draft rejected.', d.id)}>
                   Reject
                 </button>
               </>

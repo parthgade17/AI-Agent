@@ -17,6 +17,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
+import ai_compose
 import auth
 import db
 
@@ -120,7 +121,17 @@ class ApprovalEdit(BaseModel):
 
 
 def draft_achievement_message(row: dict) -> str:
-    """Compose the announcement the HOD will review before it goes out."""
+    """Compose the announcement the HOD will review before it goes out.
+
+    Written by openai/gpt-oss-120b from the record's own fields, falling back
+    to a fixed template if the LLM is unavailable, so a submission is never
+    lost to an API outage.
+    """
+    message, _ = ai_compose.compose_achievement(row)
+    return message
+
+
+def _template_achievement_message(row: dict) -> str:
     prize = f"\nPrize: Rs. {int(row['prize_amount']):,}" if row.get("prize_amount") else ""
     event = f" at {row['event_name']}" if row.get("event_name") else ""
     return (
@@ -133,6 +144,12 @@ def draft_achievement_message(row: dict) -> str:
 
 
 def draft_event_message(row: dict) -> str:
+    """AI-written event announcement, template fallback."""
+    message, _ = ai_compose.compose_event(row)
+    return message
+
+
+def _template_event_message(row: dict) -> str:
     when = row["starts_at"].strftime("%d %B %Y, %I:%M %p") if row.get("starts_at") else "TBA"
     venue = f"\nVenue: {row['venue']}" if row.get("venue") else ""
     link = f"\nRegister: {row['registration_link']}" if row.get("registration_link") else ""
@@ -143,6 +160,17 @@ def draft_event_message(row: dict) -> str:
         f"Date: {when}{venue}{link}\n\n"
         f"— Department of Computer Science and Engineering, Sanjivani University"
     )
+
+
+def whatsapp_groups() -> list[str]:
+    """Group names shown to the HOD as a checklist while sharing.
+
+    Set WHATSAPP_GROUPS in .env as a comma-separated list, for example:
+        WHATSAPP_GROUPS=CSE 2nd Year,CSE 3rd Year,CSE Faculty
+    """
+    raw = os.environ.get("WHATSAPP_GROUPS", "")
+    names = [g.strip() for g in raw.split(",") if g.strip()]
+    return names or ["CSE Department", "CSE Students", "CSE Faculty"]
 
 
 def queue_message(title: str, body: str, ref_type: str, ref_id: int):
@@ -213,7 +241,60 @@ def approve(msg_id: int, user: dict = Depends(hod)):
            VALUES (%s, 'approve_and_publish', %s, %s)""",
         (user["id"], msg["ref_type"], msg["ref_id"]),
     )
-    return {"ok": True, "published": msg["ref_type"], "record_id": msg["ref_id"]}
+    # The approved text plus a link that opens WhatsApp with it ready to send.
+    # WhatsApp's official API cannot post to groups, so the HOD taps this and
+    # picks the CSE groups. One tap, and it stays within WhatsApp's terms.
+    return {
+        "ok": True,
+        "published": msg["ref_type"],
+        "record_id": msg["ref_id"],
+        "message": msg["body"],
+        "whatsapp_url": ai_compose.share_link(msg["body"]),
+        "groups": whatsapp_groups(),
+    }
+
+
+@router.post("/approvals/{msg_id}/regenerate")
+def regenerate(msg_id: int, user: dict = Depends(hod)):
+    """Ask the AI to rewrite this draft from the original record.
+
+    Useful when the first attempt reads badly. The record is the source of
+    truth, so a rewrite cannot introduce facts that are not in the database.
+    """
+    msg = db.query_one(
+        "SELECT * FROM notifications WHERE id = %s AND status = 'pending'", (msg_id,)
+    )
+    if not msg:
+        raise HTTPException(status_code=404, detail="Draft not found, or already processed")
+
+    if msg["ref_type"] == "achievement":
+        rec = db.query_one(
+            """SELECT sa.*, u.name AS student_name, s.current_year AS student_year
+               FROM student_achievements sa
+               JOIN students s ON s.id = sa.student_id
+               JOIN users u    ON u.id = s.user_id
+               WHERE sa.id = %s""",
+            (msg["ref_id"],),
+        )
+        if not rec:
+            raise HTTPException(status_code=404, detail="Achievement record not found")
+        body, written_by = ai_compose.compose_achievement(rec)
+    elif msg["ref_type"] == "event":
+        rec = db.query_one("SELECT * FROM events WHERE id = %s", (msg["ref_id"],))
+        if not rec:
+            raise HTTPException(status_code=404, detail="Event record not found")
+        body, written_by = ai_compose.compose_event(rec)
+    else:
+        raise HTTPException(status_code=400, detail="This draft has no linked record")
+
+    db.execute("UPDATE notifications SET body = %s WHERE id = %s", (body, msg_id))
+    return {"ok": True, "body": body, "written_by": written_by}
+
+
+@router.get("/whatsapp-groups")
+def groups(user: dict = Depends(hod)):
+    """The CSE WhatsApp groups an announcement should reach."""
+    return {"groups": whatsapp_groups()}
 
 
 @router.post("/approvals/{msg_id}/reject")
