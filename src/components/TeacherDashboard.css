@@ -1831,3 +1831,361 @@ select:focus-visible {
     transform: none;
   }
 }
+
+/* =====================================================
+   AI ASSIGNMENT EVALUATOR
+===================================================== */
+
+.ai-evaluation-result {
+  margin-top: 28px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.ai-evaluation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.ai-evaluation-header h3 {
+  margin: 6px 0 0;
+  color: #292e37;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ai-score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-score span {
+  color: #737983;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.ai-score strong {
+  color: #20242c;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.ai-feedback-box {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.ai-feedback-box h3,
+.ai-evaluation-box h3 {
+  margin: 0 0 10px;
+  color: #292e37;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ai-feedback-box p {
+  margin: 0;
+  color: #656b74;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.ai-evaluation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ai-evaluation-box {
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.ai-evaluation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.ai-evaluation-item span {
+  flex-shrink: 0;
+  color: #5f6875;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ai-evaluation-item p {
+  margin: 0;
+  color: #555b65;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.teacher-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 700px) {
+  .ai-evaluation-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ai-evaluation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =====================================================
+   ATTENDANCE ALERT
+===================================================== */
+
+.attendance-alert-result {
+  margin-top: 28px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.attendance-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.attendance-result-header h3 {
+  margin: 6px 0 0;
+  color: #292e37;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.attendance-status {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.attendance-status.safe {
+  color: #315f48;
+  background: rgba(79, 139, 103, 0.12);
+}
+
+.attendance-status.warning {
+  color: #8a5b28;
+  background: rgba(196, 142, 72, 0.14);
+}
+
+.attendance-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.attendance-metric {
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.attendance-metric span {
+  display: block;
+  margin-bottom: 8px;
+  color: #737983;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.attendance-metric strong {
+  color: #292e37;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.attendance-message-box,
+.attendance-warning-box {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.attendance-message-box h3,
+.attendance-warning-box h3 {
+  margin: 0 0 10px;
+  color: #292e37;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.attendance-message-box p,
+.attendance-warning-box p {
+  margin: 0;
+  color: #656b74;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.attendance-warning-box {
+  border-left: 3px solid #b8894c;
+}
+
+@media (max-width: 700px) {
+  .attendance-result-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attendance-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =====================================================
+   ASSIGNMENT REMINDER
+===================================================== */
+
+.assignment-reminders-list {
+  margin-top: 32px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.assignment-reminder-empty {
+  padding: 28px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.05);
+  color: #737983;
+  font-size: 11px;
+  text-align: center;
+}
+
+.assignment-reminder-card {
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.assignment-reminder-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.assignment-reminder-info h3 {
+  margin: 6px 0 5px;
+  color: #292e37;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.assignment-reminder-info p {
+  margin: 0;
+  color: #737983;
+  font-size: 11px;
+}
+
+.assignment-reminder-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.assignment-reminder-date span,
+.assignment-reminder-message span {
+  color: #737983;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.assignment-reminder-date strong {
+  color: #292e37;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.assignment-reminder-message {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.assignment-reminder-message p {
+  margin: 7px 0 0;
+  color: #5f6570;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.assignment-reminder-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.reminder-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.08);
+  color: #477b68;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .assignment-reminder-info {
+    flex-direction: column;
+  }
+
+  .assignment-reminder-date {
+    align-items: flex-start;
+  }
+}
