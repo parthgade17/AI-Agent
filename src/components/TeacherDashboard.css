@@ -1831,3 +1831,441 @@ select:focus-visible {
     transform: none;
   }
 }
+/* ==========================================================================
+   APPEND THIS TO THE END OF YOUR EXISTING HodDashboard.css
+
+   Styles only the Student Performance panel classes, which your stylesheet
+   did not define. Nothing above is touched, and no existing selector is
+   redefined — adding this cannot change any other part of the dashboard.
+
+   Palette matched to the rest of the dashboard:
+     #111827 ink · #374151 body · #6b7280 muted · #9ca3af light
+     #e5e7eb border · #f7f8fa surface · #ffffff card
+   ========================================================================== */
+
+.hod-performance-page {
+  padding-bottom: 60px;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.hod-performance-header {
+  margin-bottom: 30px;
+}
+
+.hod-performance-kicker {
+  display: block;
+  margin-bottom: 9px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.hod-performance-header h2 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.6px;
+  color: #111827;
+}
+
+.hod-performance-header p {
+  max-width: 760px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+/* ------------------------------------------------------------- stat strip */
+
+.hod-performance-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.hod-performance-stat {
+  padding: 20px 22px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.hod-performance-stat span {
+  display: block;
+  margin-bottom: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.hod-performance-stat strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+  color: #111827;
+}
+
+.hod-performance-stat small {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* ------------------------------------------------------------ tool cards */
+
+.hod-performance-tools {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.hod-performance-tool {
+  position: relative;
+  padding: 22px 22px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.hod-performance-tool:hover {
+  border-color: #9ca3af;
+  transform: translateY(-2px);
+}
+
+.hod-performance-tool.active {
+  border-color: #111827;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.07);
+}
+
+.hod-performance-tool-number {
+  display: block;
+  margin-bottom: 12px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.hod-performance-tool.active .hod-performance-tool-number {
+  color: #111827;
+}
+
+.hod-performance-tool strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.hod-performance-tool p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ----------------------------------------------------------------- panel */
+
+.hod-performance-panel {
+  padding: 26px 28px 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.hod-performance-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hod-performance-panel-head h3 {
+  margin: 0 0 7px;
+  font-size: 19px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.hod-performance-panel-head p {
+  max-width: 620px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.hod-performance-panel-head button {
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------- summary */
+
+.hod-performance-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hod-performance-summary > div {
+  padding: 15px 18px;
+  background: #f7f8fa;
+  border-radius: 11px;
+}
+
+.hod-performance-summary span {
+  display: block;
+  margin-bottom: 5px;
+  color: #6b7280;
+  font-size: 12.5px;
+}
+
+.hod-performance-summary strong {
+  font-size: 23px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* ----------------------------------------------------------------- table */
+
+.hod-performance-table-wrap {
+  overflow-x: auto;
+}
+
+.hod-performance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hod-performance-table th {
+  padding: 11px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #9ca3af;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hod-performance-table td {
+  padding: 14px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.hod-performance-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.hod-performance-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.hod-performance-table td strong {
+  font-weight: 500;
+  color: #111827;
+}
+
+/* ---------------------------------------------------- trend / risk badges */
+
+.hod-risk-trend,
+.hod-risk-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hod-risk-trend-improving { background: #ecfdf5; color: #065f46; }
+.hod-risk-trend-stable    { background: #eff6ff; color: #1e40af; }
+.hod-risk-trend-declining { background: #fef2f2; color: #b91c1c; }
+
+.hod-risk-low    { background: #ecfdf5; color: #065f46; }
+.hod-risk-medium { background: #fffbeb; color: #92400e; }
+.hod-risk-high   { background: #fef2f2; color: #b91c1c; }
+
+/* ------------------------------------------------------- engagement grid */
+
+.hod-engagement-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+  margin-bottom: 24px;
+}
+
+.hod-engagement-card {
+  padding: 19px 21px;
+  background: #f7f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+}
+
+.hod-engagement-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: #6b7280;
+  font-size: 12.5px;
+}
+
+.hod-engagement-card strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+  color: #111827;
+}
+
+.hod-engagement-card small {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------- risk overview */
+
+.hod-risk-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+  margin-bottom: 24px;
+}
+
+.hod-risk-level {
+  padding: 19px 21px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+}
+
+.hod-risk-level span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+}
+
+.hod-risk-level strong {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.hod-risk-level-low    { background: #ecfdf5; border-color: #a7f3d0; }
+.hod-risk-level-low span, .hod-risk-level-low strong { color: #065f46; }
+
+.hod-risk-level-medium { background: #fffbeb; border-color: #fde68a; }
+.hod-risk-level-medium span, .hod-risk-level-medium strong { color: #92400e; }
+
+.hod-risk-level-high   { background: #fef2f2; border-color: #fecaca; }
+.hod-risk-level-high span, .hod-risk-level-high strong { color: #b91c1c; }
+
+/* ------------------------------------------------------------- list rows */
+
+.hod-performance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hod-student-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.hod-student-row:hover { border-color: #9ca3af; }
+
+.hod-student-row > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.hod-student-row strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #111827;
+}
+
+.hod-student-row-risk {
+  border-left: 3px solid #e5e7eb;
+}
+
+.hod-signal {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.hod-student-reason {
+  flex-shrink: 0;
+  max-width: 320px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1100px) {
+  .hod-performance-stats { grid-template-columns: repeat(2, 1fr); }
+  .hod-performance-tools { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .hod-performance-summary { grid-template-columns: repeat(2, 1fr); }
+  .hod-engagement-grid,
+  .hod-risk-overview { grid-template-columns: 1fr; }
+
+  .hod-performance-panel-head { flex-direction: column; }
+
+  .hod-student-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .hod-student-reason {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .hod-performance-stats { grid-template-columns: 1fr; }
+  .hod-performance-panel { padding: 20px 18px 22px; }
+  .hod-performance-header h2 { font-size: 25px; }
+}

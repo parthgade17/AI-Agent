@@ -21,24 +21,8 @@ type StudentAchievement = Achievement & {
   studentName: string
 }
 
-type Course = {
-  id: number
-  name: string
-  code: string
-}
 
-type Assignment = {
-  id: number
-  title: string
-  course: string
-  dueDate: string
-}
 
-type Material = {
-  id: number
-  title: string
-  course: string
-}
 
 type Activity = {
   id: number
@@ -114,6 +98,9 @@ function TeacherDashboard({
   const [achievementMessage, setAchievementMessage] =
     useState('')
 
+  const [achievementCertFile, setAchievementCertFile] =
+    useState<File | null>(null)
+
   // =====================================================
   // STUDENT ACHIEVEMENTS
   // =====================================================
@@ -140,35 +127,54 @@ function TeacherDashboard({
     setStudentAchievementMessage,
   ] = useState('')
 
+  const [studentAchievementCertFile, setStudentAchievementCertFile] =
+    useState<File | null>(null)
+
   // =====================================================
   // LMS
   // =====================================================
 
-  const [courses, setCourses] = useState<Course[]>([])
+  // Courses, assignments and materials now live in lms_documents on the
+  // server. These stay only where other sections still read them.
 
-  const [assignments, setAssignments] = useState<Assignment[]>(
-    []
-  )
 
-  const [materials, setMaterials] = useState<Material[]>([])
+  // =====================================================
+  // ASSIGNMENT REMINDER
+  // =====================================================
 
-  const [courseForm, setCourseForm] = useState({
-    name: '',
-    code: '',
-  })
+  // =====================================================
+  // ATTENDANCE ALERT
+  // =====================================================
 
-  const [assignmentForm, setAssignmentForm] = useState({
-    title: '',
-    course: '',
-    dueDate: '',
-  })
+    useState('')
 
-  const [materialForm, setMaterialForm] = useState({
-    title: '',
-    course: '',
-  })
+    useState('')
 
-  const [lmsMessage, setLmsMessage] = useState('')
+    useState('75')
+
+    useState<{
+      status: 'safe' | 'warning'
+      message: string
+      percentage: number
+      threshold: number
+    } | null>(null)
+
+
+  // =====================================================
+  // AI ASSIGNMENT EVALUATOR
+  // =====================================================
+
+    useState('')
+
+    useState('')
+
+    useState<{
+      score: number
+      feedback: string
+      strengths: string[]
+      improvements: string[]
+    } | null>(null)
+
 
   // =====================================================
   // SETTINGS
@@ -214,11 +220,10 @@ function TeacherDashboard({
 
     async function load() {
       try {
-        const [p, ach, studentAch, lms, students] = await Promise.all([
+        const [p, ach, studentAch, students] = await Promise.all([
           facultyApi.profile(token),
           facultyApi.achievements(token),
           facultyApi.studentAchievements(token),
-          facultyApi.lms(token),
           facultyApi.students(token),
         ])
         if (cancelled) return
@@ -264,13 +269,6 @@ function TeacherDashboard({
           })),
         )
 
-        setMaterials(
-          lms.map((d) => ({
-            id: d.id,
-            title: d.title,
-            course: d.subject_name ?? d.doc_type.replace('_', ' '),
-          })),
-        )
       } catch (e) {
         if (!cancelled) {
           setApiError(e instanceof Error ? e.message : 'Could not load dashboard data')
@@ -395,9 +393,11 @@ function TeacherDashboard({
     })
 
     setEditingAchievementId(null)
+    setAchievementCertFile(null)
   }
 
   // The database only accepts these categories for faculty achievements.
+
   const FACULTY_CATEGORIES = [
     'publication', 'patent', 'grant', 'award',
     'invited_talk', 'certification', 'book', 'other',
@@ -452,6 +452,7 @@ function TeacherDashboard({
     })
 
     setEditingStudentAchievementId(null)
+    setStudentAchievementCertFile(null)
   }
 
   const editStudentAchievement = (achievement: StudentAchievement) => {
@@ -508,14 +509,34 @@ function TeacherDashboard({
     }
 
     try {
+      let achievementId = editingAchievementId
+
       if (editingAchievementId !== null) {
         await facultyApi.editAchievement(token, editingAchievementId, payload)
         setAchievementMessage('Achievement updated successfully.')
         addActivity(`Updated achievement: ${achievementForm.title}`)
       } else {
-        await facultyApi.addAchievement(token, payload)
+        const created = await facultyApi.addAchievement(token, payload)
+        achievementId = created.id
         setAchievementMessage('Achievement added successfully.')
         addActivity(`Added achievement: ${achievementForm.title}`)
+      }
+
+      // Certificate/photo is a second step against the id above, so a slow
+      // or failed upload never blocks the achievement record itself.
+      if (achievementId !== null && achievementCertFile) {
+        try {
+          await facultyApi.uploadAchievementCertificate(
+            token, achievementId, achievementCertFile,
+          )
+          setAchievementMessage((previous) => `${previous} Certificate attached.`)
+        } catch (certError) {
+          setAchievementMessage(
+            certError instanceof Error
+              ? `Achievement saved, but the certificate failed to upload: ${certError.message}`
+              : 'Achievement saved, but the certificate failed to upload.',
+          )
+        }
       }
 
       await reloadAchievements()
@@ -528,6 +549,7 @@ function TeacherDashboard({
       })
 
       setEditingAchievementId(null)
+      setAchievementCertFile(null)
     } catch (e) {
       setAchievementMessage(
         e instanceof Error ? e.message : 'Could not save achievement',
@@ -598,7 +620,7 @@ function TeacherDashboard({
     }
 
     try {
-      await facultyApi.addStudentAchievement(token, {
+      const created = await facultyApi.addStudentAchievement(token, {
         student_id: match.id,
         title,
         category,
@@ -611,6 +633,26 @@ function TeacherDashboard({
       )
       addActivity(`Recorded ${match.name}'s achievement`)
 
+      // Certificate/photo is a second step, so a slow or failed upload
+      // never blocks the achievement record itself, and this is also the
+      // link ai_compose includes in the WhatsApp announcement later.
+      if (studentAchievementCertFile) {
+        try {
+          await facultyApi.uploadStudentAchievementCertificate(
+            token, created.id, studentAchievementCertFile,
+          )
+          setStudentAchievementMessage(
+            (previous) => `${previous} Certificate attached.`,
+          )
+        } catch (certError) {
+          setStudentAchievementMessage(
+            certError instanceof Error
+              ? `Achievement saved, but the certificate failed to upload: ${certError.message}`
+              : 'Achievement saved, but the certificate failed to upload.',
+          )
+        }
+      }
+
       await reloadStudentAchievements()
 
       setStudentAchievementForm({
@@ -622,6 +664,7 @@ function TeacherDashboard({
       })
 
       setEditingStudentAchievementId(null)
+      setStudentAchievementCertFile(null)
     } catch (e) {
       setStudentAchievementMessage(
         e instanceof Error ? e.message : 'Could not save',
@@ -642,195 +685,6 @@ function TeacherDashboard({
       )
     }
   }
-
-  const addCourse = () => {
-    if (
-      !courseForm.name.trim() ||
-      !courseForm.code.trim()
-    ) {
-      setLmsMessage(
-        'Please enter course name and course code.'
-      )
-      return
-    }
-
-    const newCourse: Course = {
-      id: Date.now(),
-      name: courseForm.name,
-      code: courseForm.code,
-    }
-
-    const updated = [
-      ...courses,
-      newCourse,
-    ]
-
-    setCourses(updated)
-
-    localStorage.setItem(
-      'lmsCourses',
-      JSON.stringify(updated)
-    )
-
-    setCourseForm({
-      name: '',
-      code: '',
-    })
-
-    setLmsMessage(
-      'Course added successfully.'
-    )
-
-    addActivity(
-      `Added LMS course: ${newCourse.name}`
-    )
-  }
-
-  const deleteCourse = (id: number) => {
-    const updated = courses.filter(
-      (course) => course.id !== id
-    )
-
-    setCourses(updated)
-
-    localStorage.setItem(
-      'lmsCourses',
-      JSON.stringify(updated)
-    )
-
-    addActivity('Deleted LMS course')
-  }
-
-  // =====================================================
-  // LMS - ASSIGNMENT
-  // =====================================================
-
-  const addAssignment = () => {
-    if (
-      !assignmentForm.title.trim() ||
-      !assignmentForm.course.trim() ||
-      !assignmentForm.dueDate
-    ) {
-      setLmsMessage(
-        'Please fill all assignment fields.'
-      )
-      return
-    }
-
-    const newAssignment: Assignment = {
-      id: Date.now(),
-      ...assignmentForm,
-    }
-
-    const updated = [
-      ...assignments,
-      newAssignment,
-    ]
-
-    setAssignments(updated)
-
-    localStorage.setItem(
-      'lmsAssignments',
-      JSON.stringify(updated)
-    )
-
-    setAssignmentForm({
-      title: '',
-      course: '',
-      dueDate: '',
-    })
-
-    setLmsMessage(
-      'Assignment created successfully.'
-    )
-
-    addActivity(
-      `Created assignment: ${newAssignment.title}`
-    )
-  }
-
-  const deleteAssignment = (id: number) => {
-    const updated = assignments.filter(
-      (assignment) =>
-        assignment.id !== id
-    )
-
-    setAssignments(updated)
-
-    localStorage.setItem(
-      'lmsAssignments',
-      JSON.stringify(updated)
-    )
-
-    addActivity('Deleted LMS assignment')
-  }
-
-  // =====================================================
-  // LMS - MATERIAL
-  // =====================================================
-
-  const addMaterial = () => {
-    if (
-      !materialForm.title.trim() ||
-      !materialForm.course.trim()
-    ) {
-      setLmsMessage(
-        'Please enter material title and course.'
-      )
-      return
-    }
-
-    const newMaterial: Material = {
-      id: Date.now(),
-      ...materialForm,
-    }
-
-    const updated = [
-      ...materials,
-      newMaterial,
-    ]
-
-    setMaterials(updated)
-
-    localStorage.setItem(
-      'lmsMaterials',
-      JSON.stringify(updated)
-    )
-
-    setMaterialForm({
-      title: '',
-      course: '',
-    })
-
-    setLmsMessage(
-      'Learning material added successfully.'
-    )
-
-    addActivity(
-      `Added learning material: ${newMaterial.title}`
-    )
-  }
-
-  const deleteMaterial = (id: number) => {
-    const updated = materials.filter(
-      (material) => material.id !== id
-    )
-
-    setMaterials(updated)
-
-    localStorage.setItem(
-      'lmsMaterials',
-      JSON.stringify(updated)
-    )
-
-    addActivity(
-      'Deleted learning material'
-    )
-  }
-
-  // =====================================================
-  // AI ASSISTANT
-  // =====================================================
 
   const organizeAchievements = () => {
     if (achievements.length === 0) {
@@ -992,7 +846,6 @@ function TeacherDashboard({
     'Student Management',
     'Student Achievements',
     'Add Student Achievement',
-    'LMS',
     'AI Assistant',
     'Settings',
   ]
@@ -1186,61 +1039,6 @@ function TeacherDashboard({
             </div>
 
 
-            <div className="teacher-stats">
-
-              <div className="teacher-stat-card">
-
-                <span className="stat-label">
-                  LMS Courses
-                </span>
-
-                <strong>
-                  {courses.length}
-                </strong>
-
-                <p>
-                  Courses
-                </p>
-
-              </div>
-
-
-              <div className="teacher-stat-card">
-
-                <span className="stat-label">
-                  Assignments
-                </span>
-
-                <strong>
-                  {assignments.length}
-                </strong>
-
-                <p>
-                  Created assignments
-                </p>
-
-              </div>
-
-
-              <div className="teacher-stat-card">
-
-                <span className="stat-label">
-                  Learning Materials
-                </span>
-
-                <strong>
-                  {materials.length}
-                </strong>
-
-                <p>
-                  Uploaded materials
-                </p>
-
-              </div>
-
-            </div>
-
-
             <div className="teacher-card">
 
               <h2>
@@ -1293,14 +1091,6 @@ function TeacherDashboard({
                   Add Student Achievement
                 </button>
 
-
-                <button
-                  onClick={() =>
-                    setActiveSection('LMS')
-                  }
-                >
-                  Open LMS
-                </button>
 
 
                 <button
@@ -1842,6 +1632,29 @@ function TeacherDashboard({
                     )
                   }
                 />
+
+
+                <label>
+                  Certificate / Photo (optional)
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    setAchievementCertFile(
+                      e.target.files && e.target.files[0]
+                        ? e.target.files[0]
+                        : null
+                    )
+                  }
+                />
+
+                {achievementCertFile && (
+                  <p className="section-description">
+                    Selected: {achievementCertFile.name}
+                  </p>
+                )}
 
 
                 <div className="quick-actions">
@@ -2471,6 +2284,35 @@ function TeacherDashboard({
                 />
 
 
+                <label>
+                  Certificate / Photo (optional)
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    setStudentAchievementCertFile(
+                      e.target.files && e.target.files[0]
+                        ? e.target.files[0]
+                        : null
+                    )
+                  }
+                />
+
+                {studentAchievementCertFile && (
+                  <p className="section-description">
+                    Selected: {studentAchievementCertFile.name}
+                  </p>
+                )}
+
+                <p className="section-description">
+                  This is what gets linked in the WhatsApp announcement once
+                  the HOD approves it, so students receiving the message can
+                  open the certificate or photo directly.
+                </p>
+
+
                 <div className="quick-actions">
 
                   <button
@@ -2523,384 +2365,19 @@ function TeacherDashboard({
         {/* LMS */}
         {/* ================================================= */}
 
-        {activeSection === 'LMS' && (
 
-          <section className="teacher-content">
+        {/* ================================================= */}
+        {/* AI ASSIGNMENT EVALUATOR */}
+        {/* ================================================= */}
 
-            <div className="teacher-card">
 
-              <h2>
-                Learning Management System
-              </h2>
+        {/* ================================================= */}
+        {/* ATTENDANCE ALERT */}
+        {/* ================================================= */}
 
-              <p className="section-description">
-                Manage courses, assignments and learning
-                materials.
-              </p>
-
-
-              {/* LMS STATS */}
-
-              <div className="teacher-stats">
-
-                <div className="teacher-stat-card">
-
-                  <span className="stat-label">
-                    Courses
-                  </span>
-
-                  <strong>
-                    {courses.length}
-                  </strong>
-
-                  <p>
-                    Active courses
-                  </p>
-
-                </div>
-
-
-                <div className="teacher-stat-card">
-
-                  <span className="stat-label">
-                    Assignments
-                  </span>
-
-                  <strong>
-                    {assignments.length}
-                  </strong>
-
-                  <p>
-                    Created assignments
-                  </p>
-
-                </div>
-
-
-                <div className="teacher-stat-card">
-
-                  <span className="stat-label">
-                    Materials
-                  </span>
-
-                  <strong>
-                    {materials.length}
-                  </strong>
-
-                  <p>
-                    Learning resources
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              {/* COURSES */}
-
-              <h3>
-                Courses
-              </h3>
-
-
-              <div className="teacher-form">
-
-                <label>
-                  Course Name
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="e.g. Artificial Intelligence"
-                  value={courseForm.name}
-                  onChange={(e) =>
-                    setCourseForm(
-                      (previous) => ({
-                        ...previous,
-                        name: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <label>
-                  Course Code
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="e.g. AI-301"
-                  value={courseForm.code}
-                  onChange={(e) =>
-                    setCourseForm(
-                      (previous) => ({
-                        ...previous,
-                        code: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <button
-                  className="primary-button"
-                  onClick={addCourse}
-                >
-                  Add Course
-                </button>
-
-              </div>
-
-
-              {courses.map((course) => (
-
-                <div
-                  className="achievement-item"
-                  key={course.id}
-                >
-
-                  <h3>
-                    {course.name}
-                  </h3>
-
-                  <p>
-                    Course Code: {course.code}
-                  </p>
-
-                  <button
-                    onClick={() =>
-                      deleteCourse(course.id)
-                    }
-                  >
-                    Delete
-                  </button>
-
-                </div>
-
-              ))}
-
-
-              {/* ASSIGNMENTS */}
-
-              <h3>
-                Assignments
-              </h3>
-
-
-              <div className="teacher-form">
-
-                <label>
-                  Assignment Title
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Enter assignment title"
-                  value={
-                    assignmentForm.title
-                  }
-                  onChange={(e) =>
-                    setAssignmentForm(
-                      (previous) => ({
-                        ...previous,
-                        title: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <label>
-                  Course
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Enter course"
-                  value={
-                    assignmentForm.course
-                  }
-                  onChange={(e) =>
-                    setAssignmentForm(
-                      (previous) => ({
-                        ...previous,
-                        course: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <label>
-                  Due Date
-                </label>
-
-                <input
-                  type="date"
-                  value={
-                    assignmentForm.dueDate
-                  }
-                  onChange={(e) =>
-                    setAssignmentForm(
-                      (previous) => ({
-                        ...previous,
-                        dueDate:
-                          e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <button
-                  className="primary-button"
-                  onClick={addAssignment}
-                >
-                  Create Assignment
-                </button>
-
-              </div>
-
-
-              {assignments.map(
-                (assignment) => (
-
-                  <div
-                    className="achievement-item"
-                    key={assignment.id}
-                  >
-
-                    <h3>
-                      {assignment.title}
-                    </h3>
-
-                    <p>
-                      {assignment.course} • Due:{' '}
-                      {assignment.dueDate}
-                    </p>
-
-                    <button
-                      onClick={() =>
-                        deleteAssignment(
-                          assignment.id
-                        )
-                      }
-                    >
-                      Delete
-                    </button>
-
-                  </div>
-
-                )
-              )}
-
-
-              {/* MATERIALS */}
-
-              <h3>
-                Learning Materials
-              </h3>
-
-
-              <div className="teacher-form">
-
-                <label>
-                  Material Title
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="e.g. Unit 1 Notes"
-                  value={
-                    materialForm.title
-                  }
-                  onChange={(e) =>
-                    setMaterialForm(
-                      (previous) => ({
-                        ...previous,
-                        title: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <label>
-                  Course
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Enter course"
-                  value={
-                    materialForm.course
-                  }
-                  onChange={(e) =>
-                    setMaterialForm(
-                      (previous) => ({
-                        ...previous,
-                        course: e.target.value,
-                      })
-                    )
-                  }
-                />
-
-
-                <button
-                  className="primary-button"
-                  onClick={addMaterial}
-                >
-                  Add Material
-                </button>
-
-              </div>
-
-
-              {materials.map((material) => (
-
-                <div
-                  className="achievement-item"
-                  key={material.id}
-                >
-
-                  <h3>
-                    {material.title}
-                  </h3>
-
-                  <p>
-                    Course: {material.course}
-                  </p>
-
-                  <button
-                    onClick={() =>
-                      deleteMaterial(
-                        material.id
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
-
-                </div>
-
-              ))}
-
-
-              {lmsMessage && (
-
-                <p className="section-description">
-                  {lmsMessage}
-                </p>
-
-              )}
-
-            </div>
-
-          </section>
-
-        )}
-
+        {/* ================================================= */}
+        {/* ASSIGNMENT REMINDER */}
+        {/* ================================================= */}
 
         {/* ================================================= */}
         {/* AI ASSISTANT */}

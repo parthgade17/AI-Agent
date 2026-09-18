@@ -107,6 +107,7 @@ export interface ApproveResult {
   message?: string
   whatsapp_url?: string
   groups?: string[]
+  indexed_for_ai?: boolean
 }
 
 export interface Draft {
@@ -136,18 +137,6 @@ export interface EventRow {
   starts_at: string
   is_published: boolean
   registrations: number
-}
-
-export interface LmsRow {
-  id: number
-  title: string
-  doc_type: string
-  semester: number | null
-  file_size_kb: number | null
-  is_indexed: boolean
-  uploaded_at: string
-  subject_name: string | null
-  uploaded_by_name: string
 }
 
 export interface SubjectOption {
@@ -206,33 +195,11 @@ export const hodApi = {
   reject:     (t: string, id: number) =>
                 hodRequest<{ ok: boolean }>(`/approvals/${id}/reject`, t, 'POST'),
 
-  students:   (t: string) => hodRequest<StudentOption[]>('/students', t),
-  addAchievement: (t: string, data: Record<string, unknown>) =>
-                hodRequest<{ id: number }>('/achievements', t, 'POST', data),
-
-  events:     (t: string) => hodRequest<EventRow[]>('/events', t),
-  addEvent:   (t: string, data: Record<string, unknown>) =>
-                hodRequest<{ id: number }>('/events', t, 'POST', data),
-
-  subjects:   (t: string) => hodRequest<SubjectOption[]>('/subjects', t),
-  lms:        (t: string) => hodRequest<LmsRow[]>('/lms', t),
-  deleteLms:  (t: string, id: number) =>
-                hodRequest<{ ok: boolean }>(`/lms/${id}`, t, 'DELETE'),
-  uploadLms:  async (t: string, form: FormData) => {
-    const res = await fetch(`${BASE}/api/hod/lms`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${t}` },   // no Content-Type: the browser sets the boundary
-      body: form,
-    })
-    if (!res.ok) {
-      let detail = `Upload failed (${res.status})`
-      try { const d = await res.json(); if (d?.detail) detail = d.detail } catch { /* none */ }
-      throw new Error(detail)
-    }
-    return res.json()
-  },
-
-  faculty:    (t: string) => hodRequest<FacultyRow[]>('/faculty', t),
+  knowledgeBaseStatus: (t: string) =>
+                hodRequest<{ documents: number; chunks: number }>('/knowledge-base/status', t),
+  rebuildKnowledgeBase: (t: string) =>
+                hodRequest<{ ok: boolean; documents: number; chunks: number; failed: number }>(
+                  '/knowledge-base/rebuild', t, 'POST'),
 }
 
 /* ------------------------------------------------------------ STUDENT API */
@@ -326,17 +293,12 @@ export interface StudentAchievement {
   position: string | null
   prize_amount: number | null
   achieved_on: string | null
+  proof_url: string | null
+  share_url: string | null
   is_published: boolean
   verified_at: string | null
   verified_by_name: string | null
   created_at: string
-}
-
-export interface StudentLms {
-  current_semester: number | null
-  current_year: number | null
-  subjects: { id: number; code: string; name: string; semester: number | null; credits: number | null; subject_type: string; faculty_name: string | null }[]
-  documents: { id: number; title: string; doc_type: string; semester: number | null; unit_number: number | null; file_size_kb: number | null; uploaded_at: string; subject_name: string | null; uploaded_by_name: string }[]
 }
 
 export interface StudentFacultyRow {
@@ -385,10 +347,27 @@ export const studentApi = {
   labs:        (t: string) => studentRequest<LabRow[]>('/labs', t),
   achievements:(t: string) => studentRequest<StudentAchievement[]>('/achievements', t),
   addAchievement: (t: string, data: Record<string, unknown>) =>
-                 studentRequest<{ id: number; status: string }>('/achievements', t, 'POST', data),
+                 studentRequest<{ id: number; status: string; draft?: string }>(
+                   '/achievements', t, 'POST', data),
   deleteAchievement: (t: string, id: number) =>
                  studentRequest<{ ok: boolean }>(`/achievements/${id}`, t, 'DELETE'),
-  lms:         (t: string) => studentRequest<StudentLms>('/lms', t),
+
+  uploadCertificate: async (t: string, id: number, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${API_BASE}/api/student/achievements/${id}/certificate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${t}` },   // no Content-Type: the browser sets the boundary
+      body: form,
+    })
+    if (!res.ok) {
+      let detail = `Upload failed (${res.status})`
+      try { const d = await res.json(); if (d?.detail) detail = d.detail } catch { /* none */ }
+      throw new Error(detail)
+    }
+    return res.json() as Promise<{ proof_url: string }>
+  },
+
   events:      (t: string) => studentRequest<PublicEvent[]>('/events', t),
   announcements: (t: string) => studentRequest<AnnouncementRow[]>('/announcements', t),
 }
@@ -471,32 +450,6 @@ export interface PendingStudentAchievement {
   division: string | null
 }
 
-export interface FacultySubject {
-  id: number
-  code: string
-  name: string
-  semester: number | null
-  credits: number | null
-  subject_type: string
-  is_mine: boolean
-}
-
-export interface FacultyLmsRow {
-  id: number
-  title: string
-  doc_type: string
-  description: string | null
-  semester: number | null
-  unit_number: number | null
-  file_size_kb: number | null
-  for_students: boolean
-  is_indexed: boolean
-  uploaded_at: string
-  download_count: number
-  subject_name: string | null
-  uploaded_by_name: string
-}
-
 export interface FacultyStats {
   my_achievements: number
   my_subjects: number
@@ -522,24 +475,10 @@ export const facultyApi = {
   deleteAchievement: (t: string, id: number) =>
                        facultyRequest<{ ok: boolean }>(`/achievements/${id}`, t, 'DELETE'),
 
-  students:            (t: string) => facultyRequest<StudentOption[]>('/students', t),
-  studentAchievements: (t: string, pendingOnly = false) =>
-                         facultyRequest<PendingStudentAchievement[]>(
-                           `/student-achievements${pendingOnly ? '?pending_only=true' : ''}`, t),
-  addStudentAchievement: (t: string, data: Record<string, unknown>) =>
-                         facultyRequest<{ id: number }>('/student-achievements', t, 'POST', data),
-  verifyStudentAchievement: (t: string, id: number) =>
-                         facultyRequest<{ ok: boolean }>(`/student-achievements/${id}/verify`, t, 'POST'),
-  rejectStudentAchievement: (t: string, id: number) =>
-                         facultyRequest<{ ok: boolean }>(`/student-achievements/${id}/reject`, t, 'POST'),
-
-  subjects:  (t: string) => facultyRequest<FacultySubject[]>('/subjects', t),
-  lms:       (t: string, mineOnly = false) =>
-               facultyRequest<FacultyLmsRow[]>(`/lms${mineOnly ? '?mine_only=true' : ''}`, t),
-  deleteLms: (t: string, id: number) =>
-               facultyRequest<{ ok: boolean }>(`/lms/${id}`, t, 'DELETE'),
-  uploadLms: async (t: string, form: FormData) => {
-    const res = await fetch(`${API_BASE}/api/faculty/lms`, {
+  uploadAchievementCertificate: async (t: string, id: number, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${API_BASE}/api/faculty/achievements/${id}/certificate`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${t}` },
       body: form,
@@ -549,7 +488,35 @@ export const facultyApi = {
       try { const d = await res.json(); if (d?.detail) detail = d.detail } catch { /* none */ }
       throw new Error(detail)
     }
-    return res.json()
+    return res.json() as Promise<{ ok: boolean; proof_url: string }>
+  },
+
+  students:            (t: string) => facultyRequest<StudentOption[]>('/students', t),
+  studentAchievements: (t: string, pendingOnly = false) =>
+                         facultyRequest<PendingStudentAchievement[]>(
+                           `/student-achievements${pendingOnly ? '?pending_only=true' : ''}`, t),
+  addStudentAchievement: (t: string, data: Record<string, unknown>) =>
+                         facultyRequest<{ id: number }>('/student-achievements', t, 'POST', data),
+  verifyStudentAchievement: (t: string, id: number) =>
+                         facultyRequest<{ ok: boolean; indexed_for_ai?: boolean }>(
+                           `/student-achievements/${id}/verify`, t, 'POST'),
+  rejectStudentAchievement: (t: string, id: number) =>
+                         facultyRequest<{ ok: boolean }>(`/student-achievements/${id}/reject`, t, 'POST'),
+
+  uploadStudentAchievementCertificate: async (t: string, id: number, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${API_BASE}/api/faculty/student-achievements/${id}/certificate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${t}` },
+      body: form,
+    })
+    if (!res.ok) {
+      let detail = `Upload failed (${res.status})`
+      try { const d = await res.json(); if (d?.detail) detail = d.detail } catch { /* none */ }
+      throw new Error(detail)
+    }
+    return res.json() as Promise<{ ok: boolean; proof_url: string }>
   },
 }
 
@@ -628,7 +595,10 @@ export const publicApi = {
   events:        () => publicRequest<PublicEvents>('/events'),
   announcements: () => publicRequest<AnnouncementRow[]>('/announcements'),
 }
+
 /* --------------------------------------------------------------- CHAT API */
+/* The department AI agent. Every role uses the same endpoint; the backend
+   scopes retrieval by the role on the bearer token. */
 
 export interface ChatAnswer {
   answer: string
@@ -677,7 +647,7 @@ async function chatRequest<T>(
     try {
       const d = await res.json()
       if (d?.detail) detail = typeof d.detail === 'string' ? d.detail : JSON.stringify(d.detail)
-    } catch { /* no body */ }
+    } catch { /* no JSON body */ }
     throw new Error(detail)
   }
   return res.json() as Promise<T>

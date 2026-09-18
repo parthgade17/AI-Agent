@@ -1,243 +1,260 @@
+import { useCallback, useEffect, useState } from 'react'
+import { studentApi, lmsFiles } from '../api'
+import type { LmsDocument, StudentLms } from '../api'
 import './LMSSection.css'
 
-function LMSSection() {
+const TYPE_LABEL: Record<string, string> = {
+  notes: 'Notes',
+  assignment: 'Assignment',
+  question_bank: 'Question Bank',
+  practical_manual: 'Practical Manual',
+  circular: 'Circular',
+  syllabus: 'Syllabus',
+  timetable: 'Timetable',
+  other: 'Other',
+}
+
+function sizeLabel(kb: number | null) {
+  if (!kb) return ''
+  return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`
+}
+
+function LMSSection({ token }: { token: string }) {
+  const [data, setData] = useState<StudentLms | null>(null)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const [filter, setFilter] = useState<string>('all')
+
+  const load = useCallback(() => {
+    studentApi
+      .lms(token)
+      .then(setData)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Could not load LMS data'))
+  }, [token])
+
+  useEffect(load, [load])
+
+  async function handleDownload(doc: LmsDocument) {
+    setBusyId(doc.id)
+    setError('')
+    try {
+      const ext = doc.file_type ? `.${doc.file_type}` : ''
+      await lmsFiles.download(token, doc.id, `${doc.title}${ext}`)
+      load()                      // refresh the download counter
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Download failed')
+    }
+    setBusyId(null)
+  }
+
+  async function handleOpen(doc: LmsDocument) {
+    setBusyId(doc.id)
+    setError('')
+    try {
+      await lmsFiles.open(token, doc.id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not open the file')
+    }
+    setBusyId(null)
+  }
+
+  if (!data) {
+    return (
+      <section className="lms-section">
+        <p>{error || 'Loading academic resources…'}</p>
+      </section>
+    )
+  }
+
+  const docs = data.documents ?? []
+  const byType = (t: string) => docs.filter((d) => d.doc_type === t)
+  const assignments = byType('assignment')
+  const notes = byType('notes')
+  const questionBanks = byType('question_bank')
+  const manuals = byType('practical_manual')
+
+  const visible = filter === 'all' ? docs : docs.filter((d) => d.doc_type === filter)
+
+  const presentTypes = Array.from(new Set(docs.map((d) => d.doc_type)))
+
   return (
     <section className="lms-section">
 
-      {/* LMS Header */}
+      {/* Header */}
       <div className="lms-section-header">
         <div>
-          <span className="lms-section-label">
-            10 · LMS / ACADEMICS
-          </span>
-
+          <span className="lms-section-label">10 · LMS / ACADEMICS</span>
           <h2>Learning Management System</h2>
-
           <p>
-            Access your courses, study materials, assignments and
-            academic information from one place.
+            Course materials, assignments and question banks shared by your
+            faculty. Open a file in the browser or download it.
           </p>
         </div>
       </div>
 
-      {/* LMS Overview */}
+      {error && <p className="lms-error">{error}</p>}
+
+      {/* Overview */}
       <div className="lms-overview">
-
         <div className="lms-overview-content">
-          <span className="lms-overview-label">
-            CURRENT SEMESTER
-          </span>
-
-          <h3>Semester 5</h3>
-
+          <span className="lms-overview-label">CURRENT SEMESTER</span>
+          <h3>
+            {data.current_semester ? `Semester ${data.current_semester}` : 'Semester not set'}
+          </h3>
           <p>
-            Manage your academic resources and keep track of your
-            learning activities.
+            {data.subjects.length} subject{data.subjects.length === 1 ? '' : 's'} ·{' '}
+            {docs.length} document{docs.length === 1 ? '' : 's'} available for download.
           </p>
         </div>
 
         <div className="lms-semester-badge">
-          2026
+          {data.current_year ? `Year ${data.current_year}` : '—'}
         </div>
-
       </div>
 
-      {/* LMS Modules */}
+      {/* Modules */}
       <div className="lms-module-grid">
 
-        {/* Courses */}
+        {/* Subjects */}
         <div className="lms-card">
-
-          <span className="lms-card-number">
-            01
-          </span>
-
-          <h3>My Courses</h3>
-
-          <p>
-            View the subjects and courses enrolled in your current
-            semester.
-          </p>
+          <span className="lms-card-number">01</span>
+          <h3>My Subjects</h3>
+          <p>The subjects on your current semester.</p>
 
           <div className="lms-course-list">
-
-            <div className="lms-course-item">
-              <strong>Data Structures</strong>
-              <span>Computer Science</span>
-            </div>
-
-            <div className="lms-course-item">
-              <strong>Database Management</strong>
-              <span>Computer Science</span>
-            </div>
-
-            <div className="lms-course-item">
-              <strong>Operating Systems</strong>
-              <span>Computer Science</span>
-            </div>
-
+            {data.subjects.length ? (
+              data.subjects.map((s) => (
+                <div className="lms-course-item" key={s.id}>
+                  <strong>{s.name}</strong>
+                  <span>
+                    {[s.code, s.faculty_name, s.credits ? `${s.credits} credits` : null]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="lms-course-item">
+                <strong>No subjects recorded</strong>
+                <span>The department office adds these.</span>
+              </div>
+            )}
           </div>
-
         </div>
 
-        {/* Assignments */}
+        {/* Counts — real, from the database */}
         <div className="lms-card">
-
-          <span className="lms-card-number">
-            02
-          </span>
-
-          <h3>Assignments</h3>
-
-          <p>
-            Keep track of assignments and upcoming academic
-            submissions.
-          </p>
+          <span className="lms-card-number">02</span>
+          <h3>Materials Available</h3>
+          <p>What your faculty have shared so far.</p>
 
           <div className="lms-status-list">
-
             <div className="lms-status-item">
-              <span>Pending</span>
-              <strong>03</strong>
+              <span>Assignments</span>
+              <strong>{String(assignments.length).padStart(2, '0')}</strong>
             </div>
-
             <div className="lms-status-item">
-              <span>Submitted</span>
-              <strong>08</strong>
+              <span>Notes</span>
+              <strong>{String(notes.length).padStart(2, '0')}</strong>
             </div>
-
             <div className="lms-status-item">
-              <span>Completed</span>
-              <strong>12</strong>
+              <span>Question banks</span>
+              <strong>{String(questionBanks.length).padStart(2, '0')}</strong>
             </div>
-
+            <div className="lms-status-item">
+              <span>Practical manuals</span>
+              <strong>{String(manuals.length).padStart(2, '0')}</strong>
+            </div>
           </div>
-
         </div>
 
-        {/* Study Materials */}
-        <div className="lms-card">
-
-          <span className="lms-card-number">
-            03
-          </span>
-
-          <h3>Study Materials</h3>
-
-          <p>
-            Access lecture notes, presentations, documents and
-            other learning resources.
-          </p>
-
-          <button className="lms-card-button">
-            View Materials
-          </button>
-
-        </div>
-
-        {/* Attendance */}
-        <div className="lms-card">
-
-          <span className="lms-card-number">
-            04
-          </span>
-
-          <h3>Attendance</h3>
-
-          <p>
-            Monitor your academic attendance across your current
-            courses.
-          </p>
-
-          <div className="lms-attendance">
-
-            <div className="lms-attendance-value">
-              86%
-            </div>
-
-            <span>
-              Overall Attendance
-            </span>
-
-          </div>
-
-        </div>
-
-        {/* Academic Activities */}
+        {/* All documents, downloadable */}
         <div className="lms-card lms-card-wide">
-
-          <span className="lms-card-number">
-            05
-          </span>
-
-          <h3>Upcoming Academic Activities</h3>
-
+          <span className="lms-card-number">03</span>
+          <h3>Course Materials</h3>
           <p>
-            Stay updated with upcoming academic tasks and
-            activities.
+            {docs.length
+              ? 'Click a file to open it in a new tab, or download it to keep.'
+              : 'Nothing has been uploaded yet. Files appear here as faculty add them.'}
           </p>
+
+          {presentTypes.length > 1 && (
+            <div className="lms-filter-row">
+              <button
+                className={filter === 'all' ? 'lms-filter active' : 'lms-filter'}
+                onClick={() => setFilter('all')}
+              >
+                All ({docs.length})
+              </button>
+              {presentTypes.map((t) => (
+                <button
+                  key={t}
+                  className={filter === t ? 'lms-filter active' : 'lms-filter'}
+                  onClick={() => setFilter(t)}
+                >
+                  {TYPE_LABEL[t] ?? t} ({byType(t).length})
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="lms-activity-list">
+            {visible.map((d) => (
+              <div className="lms-activity-item lms-file-item" key={d.id}>
+                <div>
+                  <strong>{d.title}</strong>
+                  <span>
+                    {[
+                      TYPE_LABEL[d.doc_type] ?? d.doc_type,
+                      d.subject_name,
+                      d.unit_number ? `Unit ${d.unit_number}` : null,
+                      sizeLabel(d.file_size_kb),
+                      d.file_type?.toUpperCase(),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                  <span className="lms-file-meta">
+                    Uploaded by {d.uploaded_by_name} on{' '}
+                    {new Date(d.uploaded_at).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                    {d.download_count > 0 && ` · ${d.download_count} download${d.download_count === 1 ? '' : 's'}`}
+                  </span>
+                  {d.description && <span className="lms-file-meta">{d.description}</span>}
+                </div>
 
-            <div className="lms-activity-item">
-              <div>
-                <strong>Data Structures Assignment</strong>
-                <span>Submission deadline</span>
+                <div className="lms-file-actions">
+                  <button
+                    className="lms-card-button"
+                    disabled={busyId === d.id}
+                    onClick={() => handleOpen(d)}
+                  >
+                    Open
+                  </button>
+                  <button
+                    className="lms-primary-button"
+                    disabled={busyId === d.id}
+                    onClick={() => handleDownload(d)}
+                  >
+                    {busyId === d.id ? '…' : 'Download'}
+                  </button>
+                </div>
               </div>
+            ))}
 
-              <small>
-                15 Sep
-              </small>
-            </div>
-
-            <div className="lms-activity-item">
-              <div>
-                <strong>Database Management Test</strong>
-                <span>Internal assessment</span>
+            {!visible.length && (
+              <div className="lms-activity-item">
+                <div>
+                  <strong>Nothing here yet</strong>
+                  <span>Documents appear as faculty upload them.</span>
+                </div>
               </div>
-
-              <small>
-                18 Sep
-              </small>
-            </div>
-
-            <div className="lms-activity-item">
-              <div>
-                <strong>Operating Systems Project</strong>
-                <span>Project submission</span>
-              </div>
-
-              <small>
-                22 Sep
-              </small>
-            </div>
-
+            )}
           </div>
-
-        </div>
-
-        {/* LMS Access */}
-        <div className="lms-card lms-access-card">
-
-          <span className="lms-card-number">
-            06
-          </span>
-
-          <h3>External LMS Access</h3>
-
-          <p>
-            Open the college LMS platform to access your complete
-            academic resources.
-          </p>
-
-          <button className="lms-primary-button">
-            Open LMS
-          </button>
-
         </div>
 
       </div>
-
     </section>
   )
 }

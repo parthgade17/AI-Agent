@@ -12,11 +12,21 @@ Wire into app.py:
     from public_routes import router as public_router
     app.include_router(public_router)
 """
+import html as html_lib
+import os
+
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
 
 import db
 
 router = APIRouter(prefix="/api/public", tags=["public"])
+
+# Used to build absolute links -- both the LinkedIn preview page's own URL
+# (og:url) and the page it redirects a human visitor to. Override in .env
+# once this leaves localhost.
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 
 
 @router.get("/department")
@@ -119,6 +129,77 @@ def achievements():
                ORDER BY sa.achieved_on DESC NULLS LAST"""
         ),
     }
+
+
+@router.get("/achievements/{ach_id}/preview", response_class=HTMLResponse)
+def achievement_preview(ach_id: int):
+    """A minimal public page for one published student achievement, carrying
+    Open Graph tags so LinkedIn's share dialog builds a real preview card
+    (title, description, photo) instead of a bare grey link.
+
+    This is what LinkedIn's crawler reads -- point the "Share on LinkedIn"
+    button at THIS url, not at the raw certificate image file, which has no
+    meta tags of its own and would show as a plain link.
+
+    Not meant for a human to actually read: it redirects a real visitor
+    straight to the site. Unpublished or unknown ids get a 404, same rule
+    as every other public endpoint here -- nothing unverified is ever
+    reachable, even by direct link.
+    """
+    row = db.query_one(
+        """SELECT sa.title, sa.description, sa.event_name, sa.organiser,
+                  sa.position, sa.achieved_on, sa.proof_url, u.name AS student_name
+           FROM student_achievements sa
+           JOIN students s ON s.id = sa.student_id
+           JOIN users u    ON u.id = s.user_id
+           WHERE sa.id = %s AND sa.is_published""",
+        (ach_id,),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Achievement not found or not yet published")
+
+    title = html_lib.escape(f"{row['student_name']} — {row['title']}")
+
+    bits = []
+    if row.get("position"):
+        bits.append(row["position"])
+    if row.get("event_name"):
+        bits.append(f"at {row['event_name']}")
+    summary = " ".join(bits)
+    if row.get("description"):
+        summary = f"{summary}. {row['description']}" if summary else row["description"]
+    description = html_lib.escape(
+        summary or "A CSE department achievement, Sanjivani University."
+    )
+
+    page_url = f"{PUBLIC_BASE_URL}/api/public/achievements/{ach_id}/preview"
+    image_tag = ""
+    # LinkedIn will not render a PDF as a preview image, only jpg/png -- an
+    # uploaded certificate PDF simply gets no og:image, not a broken one.
+    proof = row.get("proof_url") or ""
+    if proof.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+        image_tag = f'<meta property="og:image" content="{html_lib.escape(proof)}" />'
+
+    redirect_to = html_lib.escape(f"{FRONTEND_URL}/#achievements")
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>{title}</title>
+<meta property="og:title" content="{title}" />
+<meta property="og:description" content="{description}" />
+<meta property="og:url" content="{page_url}" />
+<meta property="og:type" content="article" />
+{image_tag}
+<meta http-equiv="refresh" content="0; url={redirect_to}" />
+</head>
+<body>
+<h1>{title}</h1>
+<p>{description}</p>
+<p><a href="{redirect_to}">View the CSE Department site</a></p>
+</body>
+</html>"""
 
 
 @router.get("/events")

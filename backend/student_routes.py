@@ -9,13 +9,28 @@ Wire into app.py:
     from student_routes import router as student_router
     app.include_router(student_router)
 """
-from fastapi import APIRouter, Depends, HTTPException
+import os
+import shutil
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
+import ai_compose
 import auth
 import db
 
 router = APIRouter(prefix="/api/student", tags=["student"])
+
+# Certificates/photos are shared over WhatsApp via a wa.me link (text only),
+# so the file needs to sit somewhere reachable with no login — the same
+# public "static" mount app.py already exposes, in its own subfolder.
+CERT_DIR = os.path.join(os.path.dirname(__file__), "static", "certificates")
+os.makedirs(CERT_DIR, exist_ok=True)
+
+CERT_ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp", ".pdf"}
+MAX_CERT_MB = 8
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
 
 CATEGORIES = {"hackathon", "competition", "coding", "sports", "research",
               "certification", "internship", "placement", "entrepreneurship",
@@ -45,6 +60,25 @@ def me(user: dict = Depends(auth.current_user)) -> dict:
         (user["id"], dept["id"] if dept else None),
     )
     return {**user, "student_id": created["id"]}
+
+
+def normalise(value: str | None, default: str) -> str:
+    """Fold a dropdown value to the form the database CHECK constraint uses."""
+    return (value or default).strip().lower().replace(" ", "_").replace("-", "_")
+
+
+def queue_for_approval(title: str, body: str, ref_type: str, ref_id: int) -> None:
+    """Put a draft announcement in the HOD's approval queue.
+
+    user_id is NULL because this is a department broadcast, not a message to
+    one person.
+    """
+    db.execute(
+        """INSERT INTO notifications
+               (user_id, channel, title, body, ref_type, ref_id, status)
+           VALUES (NULL, 'whatsapp', %s, %s, %s, %s, 'pending')""",
+        (title, body, ref_type, ref_id),
+    )
 
 
 # ===========================================================================
@@ -168,10 +202,10 @@ class AchievementIn(BaseModel):
 @router.get("/achievements")
 def list_achievements(user: dict = Depends(me)):
     """The student's own achievements, including ones still awaiting approval."""
-    return db.query_all(
+    rows = db.query_all(
         """SELECT sa.id, sa.title, sa.category, sa.description, sa.event_name,
                   sa.organiser, sa.position, sa.prize_amount, sa.achieved_on,
-                  sa.is_published, sa.verified_at, sa.created_at,
+                  sa.proof_url, sa.is_published, sa.verified_at, sa.created_at,
                   vu.name AS verified_by_name
            FROM student_achievements sa
            LEFT JOIN faculty vf ON vf.id = sa.verified_by
@@ -180,12 +214,26 @@ def list_achievements(user: dict = Depends(me)):
            ORDER BY sa.achieved_on DESC NULLS LAST, sa.id DESC""",
         (user["student_id"],),
     )
+    # Only a published achievement has anything to share -- an unverified
+    # one has no public preview page, so there is nothing for LinkedIn's
+    # crawler to read yet.
+    for r in rows:
+        r["share_url"] = (
+            f"{PUBLIC_BASE_URL}/api/public/achievements/{r['id']}/preview"
+            if r["is_published"] else None
+        )
+    return rows
 
 
 @router.post("/achievements", status_code=201)
 def add_achievement(body: AchievementIn, user: dict = Depends(me)):
-    """Submitted unverified. A faculty member must approve it before it is public."""
-    if body.category not in CATEGORIES:
+    """Submit an achievement for approval.
+
+    Saved unverified, and an AI-written announcement is queued for the HOD
+    at the same time -- the same route a faculty submission takes.
+    """
+    category = normalise(body.category, "other")
+    if category not in CATEGORIES:
         raise HTTPException(
             status_code=400, detail=f"Category must be one of: {sorted(CATEGORIES)}"
         )
@@ -196,11 +244,65 @@ def add_achievement(body: AchievementIn, user: dict = Depends(me)):
                 position, achieved_on, proof_url, created_by, is_published)
            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,FALSE)
            RETURNING id""",
-        (user["student_id"], body.title, body.category, body.description,
+        (user["student_id"], body.title, category, body.description,
          body.event_name, body.organiser, body.position, body.achieved_on,
          body.proof_url, user["id"]),
     )
-    return {"id": row["id"], "status": "pending_verification"}
+
+    student = db.query_one(
+        """SELECT u.name, s.current_year
+           FROM students s JOIN users u ON u.id = s.user_id WHERE s.id = %s""",
+        (user["student_id"],),
+    )
+
+    message, written_by = ai_compose.compose_achievement({
+        **body.model_dump(),
+        "category": category,
+        "student_name": student["name"] if student else user["name"],
+        "student_year": student["current_year"] if student else None,
+    })
+
+    # Marked as self-reported so the HOD knows to check it before publishing.
+    queue_for_approval(
+        f"Achievement (self-reported): {body.title}",
+        message,
+        "achievement",
+        row["id"],
+    )
+
+    return {
+        "id": row["id"],
+        "status": "pending_hod_approval",
+        "message_written_by": written_by,
+        "draft": message,
+    }
+
+
+def _resync_pending_draft(ach_id: int) -> None:
+    """If a WhatsApp draft is still waiting for HOD approval on this
+    achievement, rewrite it from the current record. Otherwise a certificate
+    uploaded after submission would never reach the message the HOD sees --
+    it was already composed and queued before the file existed."""
+    msg = db.query_one(
+        """SELECT id FROM notifications
+           WHERE ref_type = 'achievement' AND ref_id = %s AND status = 'pending'
+           ORDER BY id DESC LIMIT 1""",
+        (ach_id,),
+    )
+    if not msg:
+        return
+    rec = db.query_one(
+        """SELECT sa.*, u.name AS student_name, s.current_year AS student_year
+           FROM student_achievements sa
+           JOIN students s ON s.id = sa.student_id
+           JOIN users u    ON u.id = s.user_id
+           WHERE sa.id = %s""",
+        (ach_id,),
+    )
+    if not rec:
+        return
+    body, _ = ai_compose.compose_achievement(rec)
+    db.execute("UPDATE notifications SET body = %s WHERE id = %s", (body, msg["id"]))
 
 
 @router.delete("/achievements/{ach_id}")
@@ -222,6 +324,52 @@ def delete_achievement(ach_id: int, user: dict = Depends(me)):
 
     db.execute("DELETE FROM student_achievements WHERE id = %s", (ach_id,))
     return {"ok": True}
+
+
+@router.post("/achievements/{ach_id}/certificate")
+def upload_achievement_certificate(
+    ach_id: int,
+    file: UploadFile = File(...),
+    user: dict = Depends(me),
+):
+    """Attach a certificate or photo to one of your own achievements.
+
+    Call this right after submitting the achievement, using the id it
+    returned. Works whether the achievement is still pending or has
+    already been verified — unlike deleting, adding proof later is fine.
+    """
+    owner = db.query_one(
+        "SELECT student_id FROM student_achievements WHERE id = %s", (ach_id,)
+    )
+    if not owner:
+        raise HTTPException(status_code=404, detail="Achievement not found")
+    if owner["student_id"] != user["student_id"]:
+        raise HTTPException(status_code=403, detail="That achievement belongs to someone else")
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in CERT_ALLOWED_EXT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Certificate must be one of: {sorted(CERT_ALLOWED_EXT)}",
+        )
+
+    safe = f"{datetime.now():%Y%m%d%H%M%S}_{os.path.basename(file.filename or 'certificate')}"
+    path = os.path.join(CERT_DIR, safe)
+    with open(path, "wb") as out:
+        shutil.copyfileobj(file.file, out)
+
+    size_kb = os.path.getsize(path) // 1024
+    if size_kb > MAX_CERT_MB * 1024:
+        os.remove(path)
+        raise HTTPException(status_code=413, detail=f"File exceeds {MAX_CERT_MB} MB")
+
+    url = f"{PUBLIC_BASE_URL}/static/certificates/{safe}"
+    db.execute(
+        "UPDATE student_achievements SET proof_url = %s WHERE id = %s",
+        (url, ach_id),
+    )
+    _resync_pending_draft(ach_id)
+    return {"proof_url": url}
 
 
 # ===========================================================================

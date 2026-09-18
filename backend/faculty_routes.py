@@ -16,9 +16,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-import ai_compose
 import auth
 import db
+import hod_routes
 
 router = APIRouter(prefix="/api/faculty", tags=["faculty"])
 
@@ -28,15 +28,27 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".txt", ".zip"}
 MAX_UPLOAD_MB = 25
 
-def normalise(value: str | None, default: str) -> str:
-    """Fold a dropdown value to the form the database CHECK constraints use.
+# Certificates/photos attached to achievements are shared over WhatsApp
+# (a wa.me link, which can only carry text), so the file itself must sit
+# somewhere a recipient with no login can open. Unlike UPLOAD_DIR above,
+# this lives inside the app's existing public "static" mount from app.py.
+#
+# Images only, deliberately — WhatsApp generates a photo-thumbnail preview
+# for a direct image link, but never for a PDF link (just a plain grey
+# card, no thumbnail). Restricting to images here guarantees every
+# certificate can render as a visible photo once the app is deployed
+# behind a public URL. If a PDF certificate genuinely needs to be shared,
+# convert its first page to an image before upload.
+CERT_DIR = os.path.join(os.path.dirname(__file__), "static", "certificates")
+os.makedirs(CERT_DIR, exist_ok=True)
 
-    The forms send "Other" and "Guest Lecture"; the constraints expect
-    "other" and "guest_lecture". Rejecting a valid selection over casing is
-    a bad error to show a user, so normalise instead.
-    """
-    return (value or default).strip().lower().replace(" ", "_").replace("-", "_")
+CERT_ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_CERT_MB = 8
 
+# Used to turn a saved filename into a link someone can actually open from
+# WhatsApp. Override in .env for anything beyond local testing — e.g. a
+# tunnel URL (ngrok) or your real deployed domain.
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
 
 FACULTY_CATEGORIES = {"publication", "patent", "grant", "award",
                       "invited_talk", "certification", "book", "other"}
@@ -47,20 +59,6 @@ STUDENT_CATEGORIES = {"hackathon", "competition", "coding", "sports", "research"
 
 DOC_TYPES = {"notes", "assignment", "question_bank", "practical_manual",
              "circular", "syllabus", "timetable", "other"}
-
-
-def queue_for_approval(title: str, body: str, ref_type: str, ref_id: int) -> None:
-    """Put a draft announcement in the HOD's approval queue.
-
-    user_id is NULL because this is a broadcast to the department, not a
-    message to one person.
-    """
-    db.execute(
-        """INSERT INTO notifications
-               (user_id, channel, title, body, ref_type, ref_id, status)
-           VALUES (NULL, 'whatsapp', %s, %s, %s, %s, 'pending')""",
-        (title, body, ref_type, ref_id),
-    )
 
 
 def me(user: dict = Depends(auth.current_user)) -> dict:
@@ -179,8 +177,7 @@ def list_achievements(user: dict = Depends(me)):
 
 @router.post("/achievements", status_code=201)
 def add_achievement(body: FacultyAchievementIn, user: dict = Depends(me)):
-    category = normalise(body.category, "publication")
-    if category not in FACULTY_CATEGORIES:
+    if body.category not in FACULTY_CATEGORIES:
         raise HTTPException(
             status_code=400,
             detail=f"Category must be one of: {sorted(FACULTY_CATEGORIES)}",
@@ -191,7 +188,7 @@ def add_achievement(body: FacultyAchievementIn, user: dict = Depends(me)):
                 impact_factor, doi, co_authors, is_main_author, grant_amount,
                 achieved_on, proof_url)
            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-        (user["faculty_id"], body.title, category, body.description,
+        (user["faculty_id"], body.title, body.category, body.description,
          body.venue, body.publisher, body.impact_factor, body.doi,
          body.co_authors, body.is_main_author, body.grant_amount,
          body.achieved_on, body.proof_url),
@@ -208,8 +205,7 @@ def edit_achievement(ach_id: int, body: FacultyAchievementIn, user: dict = Depen
         raise HTTPException(status_code=404, detail="Achievement not found")
     if owner["faculty_id"] != user["faculty_id"]:
         raise HTTPException(status_code=403, detail="That record belongs to someone else")
-    category = normalise(body.category, "publication")
-    if category not in FACULTY_CATEGORIES:
+    if body.category not in FACULTY_CATEGORIES:
         raise HTTPException(
             status_code=400,
             detail=f"Category must be one of: {sorted(FACULTY_CATEGORIES)}",
@@ -221,7 +217,7 @@ def edit_achievement(ach_id: int, body: FacultyAchievementIn, user: dict = Depen
                   impact_factor=%s, doi=%s, co_authors=%s, is_main_author=%s,
                   grant_amount=%s, achieved_on=%s, proof_url=%s
             WHERE id=%s""",
-        (body.title, category, body.description, body.venue, body.publisher,
+        (body.title, body.category, body.description, body.venue, body.publisher,
          body.impact_factor, body.doi, body.co_authors, body.is_main_author,
          body.grant_amount, body.achieved_on, body.proof_url, ach_id),
     )
@@ -240,6 +236,65 @@ def delete_achievement(ach_id: int, user: dict = Depends(me)):
 
     db.execute("DELETE FROM faculty_achievements WHERE id = %s", (ach_id,))
     return {"ok": True}
+
+
+def _save_certificate(file: UploadFile) -> str:
+    """Validate and save an uploaded certificate/photo, return its public URL.
+
+    Shared by both certificate-upload endpoints below. Raises HTTPException
+    on anything wrong with the file, so callers can just await the URL.
+    """
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in CERT_ALLOWED_EXT:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Please upload a photo ({', '.join(sorted(CERT_ALLOWED_EXT))}). "
+                "PDFs aren't accepted here because WhatsApp can't generate a "
+                "photo preview for a PDF link — only for an image. If you "
+                "have a PDF certificate, take a screenshot or export its "
+                "first page as an image and upload that instead."
+            ),
+        )
+
+    safe = f"{datetime.now():%Y%m%d%H%M%S}_{os.path.basename(file.filename or 'certificate')}"
+    path = os.path.join(CERT_DIR, safe)
+    with open(path, "wb") as out:
+        shutil.copyfileobj(file.file, out)
+
+    size_kb = os.path.getsize(path) // 1024
+    if size_kb > MAX_CERT_MB * 1024:
+        os.remove(path)
+        raise HTTPException(status_code=413, detail=f"File exceeds {MAX_CERT_MB} MB")
+
+    return f"{PUBLIC_BASE_URL}/static/certificates/{safe}"
+
+
+@router.post("/achievements/{ach_id}/certificate")
+def upload_achievement_certificate(
+    ach_id: int,
+    file: UploadFile = File(...),
+    user: dict = Depends(me),
+):
+    """Attach a certificate/photo to one of the caller's own achievements.
+
+    Called as a second step right after the achievement record itself is
+    created or edited — the id comes back from that call.
+    """
+    owner = db.query_one(
+        "SELECT faculty_id FROM faculty_achievements WHERE id = %s", (ach_id,)
+    )
+    if not owner:
+        raise HTTPException(status_code=404, detail="Achievement not found")
+    if owner["faculty_id"] != user["faculty_id"]:
+        raise HTTPException(status_code=403, detail="That record belongs to someone else")
+
+    url = _save_certificate(file)
+    db.execute(
+        "UPDATE faculty_achievements SET proof_url = %s WHERE id = %s",
+        (url, ach_id),
+    )
+    return {"proof_url": url}
 
 
 # ===========================================================================
@@ -288,26 +343,13 @@ def list_student_achievements(pending_only: bool = False, user: dict = Depends(m
 
 @router.post("/student-achievements", status_code=201)
 def add_student_achievement(body: StudentAchievementIn, user: dict = Depends(me)):
-    """Submit a student achievement for the HOD to approve.
-
-    Deliberately NOT verified on creation. The previous version set
-    verified_by to the submitting faculty member, which meant a faculty
-    submission skipped the approval queue entirely. It now goes to the HOD
-    like everything else, and an AI-written announcement goes with it.
-    """
-    category = normalise(body.category, "other")
-    if category not in STUDENT_CATEGORIES:
+    """Added by faculty, so it is verified on creation but not yet published."""
+    if body.category not in STUDENT_CATEGORIES:
         raise HTTPException(
             status_code=400,
             detail=f"Category must be one of: {sorted(STUDENT_CATEGORIES)}",
         )
-
-    student = db.query_one(
-        """SELECT s.id, u.name, s.current_year
-           FROM students s JOIN users u ON u.id = s.user_id WHERE s.id = %s""",
-        (body.student_id,),
-    )
-    if not student:
+    if not db.query_one("SELECT 1 FROM students WHERE id = %s", (body.student_id,)):
         raise HTTPException(status_code=404, detail="Student not found")
 
     row = db.execute(
@@ -315,27 +357,61 @@ def add_student_achievement(body: StudentAchievementIn, user: dict = Depends(me)
                (student_id, title, category, description, event_name, organiser,
                 position, prize_amount, achieved_on, created_by, verified_by,
                 is_published)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NULL,FALSE) RETURNING id""",
-        (body.student_id, body.title, category, body.description,
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,FALSE) RETURNING id""",
+        (body.student_id, body.title, body.category, body.description,
          body.event_name, body.organiser, body.position, body.prize_amount,
-         body.achieved_on, user["id"]),
+         body.achieved_on, user["id"], user["faculty_id"]),
     )
 
-    message, written_by = ai_compose.compose_achievement({
-        **body.model_dump(),
-        "category": category,
-        "student_name": student["name"],
-        "student_year": student["current_year"],
-    })
-    queue_for_approval(f"Achievement: {body.title}", message,
-                       "achievement", row["id"])
+    # Draft the WhatsApp announcement and queue it for HOD approval, so it
+    # shows up on the Message Approvals panel immediately. Without this call
+    # the achievement is saved but the HOD never sees anything to approve.
+    rec = db.query_one(
+        """SELECT sa.*, u.name AS student_name, s.current_year AS student_year
+           FROM student_achievements sa
+           JOIN students s ON s.id = sa.student_id
+           JOIN users u    ON u.id = s.user_id
+           WHERE sa.id = %s""",
+        (row["id"],),
+    )
+    draft_body = hod_routes.draft_achievement_message(rec)
+    hod_routes.queue_message(
+        title=f"Achievement: {rec['student_name']}",
+        body=draft_body,
+        ref_type="achievement",
+        ref_id=row["id"],
+    )
 
-    return {
-        "id": row["id"],
-        "status": "pending_hod_approval",
-        "message_written_by": written_by,
-        "draft": message,
-    }
+    return {"id": row["id"], "status": "verified_pending_publication"}
+
+
+@router.post("/student-achievements/{ach_id}/certificate")
+def upload_student_achievement_certificate(
+    ach_id: int,
+    file: UploadFile = File(...),
+    user: dict = Depends(me),
+):
+    """Attach a certificate/photo to a student achievement being recorded.
+
+    This proof_url is what ai_compose.compose_achievement links to in the
+    WhatsApp announcement once the HOD approves it.
+    """
+    if not db.query_one("SELECT 1 FROM student_achievements WHERE id = %s", (ach_id,)):
+        raise HTTPException(status_code=404, detail="Achievement not found")
+
+    url = _save_certificate(file)
+    db.execute(
+        "UPDATE student_achievements SET proof_url = %s WHERE id = %s",
+        (url, ach_id),
+    )
+
+    # The WhatsApp draft was composed and queued the moment the achievement
+    # was created — before this certificate existed. If that draft is still
+    # sitting pending (the normal case, since this call follows right after),
+    # rewrite its text now so the certificate link actually makes it in.
+    hod_routes.refresh_pending_draft("achievement", ach_id)
+
+    return {"proof_url": url}
 
 
 @router.post("/student-achievements/{ach_id}/verify")
@@ -459,102 +535,6 @@ def delete_lms(doc_id: int, user: dict = Depends(me)):
     if row["file_path"] and os.path.exists(row["file_path"]):
         os.remove(row["file_path"])
     return {"ok": True}
-
-
-# ===========================================================================
-#  EVENTS  —  submitted by faculty, published by the HOD
-# ===========================================================================
-
-EVENT_TYPES = {"workshop", "seminar", "guest_lecture", "competition", "hackathon",
-               "industrial_visit", "cultural", "sports", "exhibition", "other"}
-
-
-class EventIn(BaseModel):
-    title: str = Field(min_length=3)
-    scope: str = "department"            # 'department' or 'institute'
-    event_type: str = "workshop"
-    description: str | None = None
-    venue: str | None = None
-    starts_at: datetime
-    ends_at: datetime | None = None
-    organiser: str | None = None
-    speaker: str | None = None
-    contact_person: str | None = None
-    contact_number: str | None = None
-    registration_link: str | None = None
-    poster_url: str | None = None
-    max_participants: int | None = None
-
-
-@router.get("/events")
-def list_events(mine_only: bool = False, user: dict = Depends(me)):
-    where = "WHERE e.created_by = %s" if mine_only else ""
-    params = (user["id"],) if mine_only else ()
-    return db.query_all(
-        f"""SELECT e.id, e.title, e.scope, e.event_type, e.venue, e.starts_at,
-                   e.ends_at, e.speaker, e.registration_link, e.is_published,
-                   u.name AS created_by_name,
-                   (SELECT count(*) FROM event_registrations r
-                     WHERE r.event_id = e.id) AS registrations,
-                   (SELECT n.status FROM notifications n
-                     WHERE n.ref_type = 'event' AND n.ref_id = e.id
-                     ORDER BY n.id DESC LIMIT 1) AS approval_status
-            FROM events e
-            LEFT JOIN users u ON u.id = e.created_by
-            {where}
-            ORDER BY e.starts_at DESC""",
-        params,
-    )
-
-
-@router.post("/events", status_code=201)
-def add_event(body: EventIn, user: dict = Depends(me)):
-    """Submit an event for the HOD to approve.
-
-    Created unpublished. The AI writes the announcement, the HOD reviews it,
-    and approving both publishes the event and releases the message.
-    """
-    scope = normalise(body.scope, "department")
-    event_type = normalise(body.event_type, "workshop")
-
-    if scope not in ("institute", "department"):
-        raise HTTPException(status_code=400,
-                            detail="Scope must be 'institute' or 'department'")
-    if event_type not in EVENT_TYPES:
-        raise HTTPException(status_code=400,
-                            detail=f"Type must be one of: {sorted(EVENT_TYPES)}")
-    if body.ends_at and body.ends_at < body.starts_at:
-        raise HTTPException(status_code=400,
-                            detail="The event cannot end before it starts")
-
-    dept = db.query_one("SELECT id FROM department WHERE code = 'CSE'")
-
-    row = db.execute(
-        """INSERT INTO events
-               (department_id, scope, event_type, title, description, venue,
-                starts_at, ends_at, organiser, speaker, contact_person,
-                contact_number, registration_link, poster_url,
-                max_participants, is_published, created_by)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,FALSE,%s)
-           RETURNING id""",
-        (dept["id"] if dept else None, scope, event_type, body.title,
-         body.description, body.venue, body.starts_at, body.ends_at,
-         body.organiser, body.speaker, body.contact_person, body.contact_number,
-         body.registration_link, body.poster_url, body.max_participants,
-         user["id"]),
-    )
-
-    message, written_by = ai_compose.compose_event(
-        {**body.model_dump(), "scope": scope, "event_type": event_type}
-    )
-    queue_for_approval(f"Event: {body.title}", message, "event", row["id"])
-
-    return {
-        "id": row["id"],
-        "status": "pending_hod_approval",
-        "message_written_by": written_by,
-        "draft": message,
-    }
 
 
 # ===========================================================================

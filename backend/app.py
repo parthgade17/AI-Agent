@@ -19,6 +19,7 @@ from student_routes import router as student_router
 from faculty_routes import router as faculty_router
 from public_routes import router as public_router
 from chat_routes import router as chat_router
+from faculty_automation_routes import router as faculty_automation_router
 
 app = FastAPI(title="CSE Department AI Agent")
 
@@ -41,6 +42,7 @@ app.include_router(student_router)
 app.include_router(faculty_router)
 app.include_router(public_router)
 app.include_router(chat_router)
+app.include_router(faculty_automation_router)
 
 # Department photographs. Files live in backend/static/gallery/ and are
 # referenced from the media table by filename only.

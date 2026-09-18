@@ -11,23 +11,22 @@ Needs python-multipart for the LMS upload route:
     pip install python-multipart
 """
 import os
-import shutil
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 import ai_compose
 import auth
 import db
+import kb_sync
+import kb_rebuild
+from public_routes import knowledge as public_knowledge
 
 router = APIRouter(prefix="/api/hod", tags=["hod"])
 
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-ALLOWED_EXT = {".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".txt", ".zip"}
-MAX_UPLOAD_MB = 25
 
 
 def hod(user: dict = Depends(auth.current_user)) -> dict:
@@ -182,6 +181,48 @@ def queue_message(title: str, body: str, ref_type: str, ref_id: int):
     )
 
 
+def refresh_pending_draft(ref_type: str, ref_id: int) -> dict:
+    """Re-compose a still-pending draft from the record's current fields.
+
+    Needed because a certificate is uploaded in a second call, after the
+    achievement (and its WhatsApp draft) already exists — so the draft is
+    born without the certificate link. Call this right after anything that
+    changes a field the drafted message depends on. If the draft was
+    already approved/rejected, or never existed, this is a no-op.
+    """
+    msg = db.query_one(
+        """SELECT id FROM notifications
+           WHERE ref_type = %s AND ref_id = %s AND status = 'pending'
+           ORDER BY id DESC LIMIT 1""",
+        (ref_type, ref_id),
+    )
+    if not msg:
+        return {"refreshed": False, "reason": "no pending draft for this record"}
+
+    if ref_type == "achievement":
+        rec = db.query_one(
+            """SELECT sa.*, u.name AS student_name, s.current_year AS student_year
+               FROM student_achievements sa
+               JOIN students s ON s.id = sa.student_id
+               JOIN users u    ON u.id = s.user_id
+               WHERE sa.id = %s""",
+            (ref_id,),
+        )
+        if not rec:
+            return {"refreshed": False, "reason": "achievement record not found"}
+        body, _ = ai_compose.compose_achievement(rec)
+    elif ref_type == "event":
+        rec = db.query_one("SELECT * FROM events WHERE id = %s", (ref_id,))
+        if not rec:
+            return {"refreshed": False, "reason": "event record not found"}
+        body, _ = ai_compose.compose_event(rec)
+    else:
+        return {"refreshed": False, "reason": f"unsupported ref_type '{ref_type}'"}
+
+    db.execute("UPDATE notifications SET body = %s WHERE id = %s", (body, msg["id"]))
+    return {"refreshed": True}
+
+
 @router.get("/approvals")
 def list_approvals(status: str = "pending", user: dict = Depends(hod)):
     if status not in ("pending", "sent", "failed"):
@@ -241,6 +282,17 @@ def approve(msg_id: int, user: dict = Depends(hod)):
            VALUES (%s, 'approve_and_publish', %s, %s)""",
         (user["id"], msg["ref_type"], msg["ref_id"]),
     )
+
+    # Index it into the AI agent's knowledge base right away, so a question
+    # about this record answers correctly without waiting for a manual
+    # rebuild. achievement/event are the only types kb_sync understands;
+    # anything else is a no-op, not an error.
+    sync_result = (
+        kb_sync.upsert(msg["ref_type"], msg["ref_id"])
+        if msg["ref_type"] in ("achievement", "event")
+        else {"synced": False, "reason": "not applicable"}
+    )
+
     # The approved text plus a link that opens WhatsApp with it ready to send.
     # WhatsApp's official API cannot post to groups, so the HOD taps this and
     # picks the CSE groups. One tap, and it stays within WhatsApp's terms.
@@ -251,6 +303,7 @@ def approve(msg_id: int, user: dict = Depends(hod)):
         "message": msg["body"],
         "whatsapp_url": ai_compose.share_link(msg["body"]),
         "groups": whatsapp_groups(),
+        "indexed_for_ai": sync_result.get("synced", False),
     }
 
 
@@ -318,24 +371,7 @@ def reject(msg_id: int, user: dict = Depends(hod)):
 #  3. STUDENT ACHIEVEMENTS
 # ===========================================================================
 
-class AchievementIn(BaseModel):
-    student_id: int
-    title: str = Field(min_length=3)
-    category: str = "other"
-    description: str | None = None
-    event_name: str | None = None
-    organiser: str | None = None
-    location: str | None = None
-    position: str | None = None
-    prize_amount: float | None = None
-    team_members: str | None = None
-    proof_url: str | None = None
-    achieved_on: str | None = None
-    publish_now: bool = False
 
-
-CATEGORIES = {"hackathon", "competition", "coding", "sports", "research", "certification",
-              "internship", "placement", "entrepreneurship", "academic", "other"}
 
 
 @router.get("/students")
@@ -348,237 +384,47 @@ def list_students(user: dict = Depends(hod)):
     )
 
 
-@router.get("/achievements")
-def list_achievements(pending_only: bool = False, user: dict = Depends(hod)):
-    where = "WHERE sa.verified_at IS NULL" if pending_only else ""
-    return db.query_all(
-        f"""SELECT sa.id, sa.title, sa.category, sa.event_name, sa.position,
-                   sa.prize_amount, sa.achieved_on, sa.is_published, sa.verified_at,
-                   u.name AS student_name, s.roll_no
-            FROM student_achievements sa
-            JOIN students s ON s.id = sa.student_id
-            JOIN users u    ON u.id = s.user_id
-            {where}
-            ORDER BY sa.created_at DESC"""
-    )
-
-
-@router.post("/achievements", status_code=201)
-def add_achievement(body: AchievementIn, user: dict = Depends(hod)):
-    if body.category not in CATEGORIES:
-        raise HTTPException(status_code=400, detail=f"Category must be one of: {sorted(CATEGORIES)}")
-
-    student = db.query_one(
-        "SELECT s.id, u.name FROM students s JOIN users u ON u.id = s.user_id WHERE s.id = %s",
-        (body.student_id,),
-    )
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    faculty_id = my_faculty_id(user)
-    row = db.execute(
-        """INSERT INTO student_achievements
-               (student_id, title, category, description, event_name, organiser,
-                location, position, prize_amount, team_members, proof_url,
-                achieved_on, created_by, verified_by, is_published)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-           RETURNING id""",
-        (body.student_id, body.title, body.category, body.description, body.event_name,
-         body.organiser, body.location, body.position, body.prize_amount,
-         body.team_members, body.proof_url, body.achieved_on, user["id"],
-         # Added by the HOD, so it is verified on creation.
-         faculty_id, body.publish_now),
-    )
-
-    queue_message(
-        f"Achievement: {body.title}",
-        draft_achievement_message({**body.model_dump(), "student_name": student["name"]}),
-        "achievement", row["id"],
-    )
-    return {"id": row["id"], "draft_queued": True}
-
-
 # ===========================================================================
 #  4. EVENTS
 # ===========================================================================
 
-class EventIn(BaseModel):
-    title: str = Field(min_length=3)
-    scope: str = "department"          # 'institute' or 'department'
-    event_type: str = "other"
-    description: str | None = None
-    venue: str | None = None
-    starts_at: datetime
-    ends_at: datetime | None = None
-    organiser: str | None = None
-    speaker: str | None = None
-    contact_person: str | None = None
-    contact_number: str | None = None
-    registration_link: str | None = None
-    poster_url: str | None = None
-    max_participants: int | None = None
-    publish_now: bool = False
 
-
-EVENT_TYPES = {"workshop", "seminar", "guest_lecture", "competition", "hackathon",
-               "industrial_visit", "cultural", "sports", "exhibition", "other"}
-
-
-@router.get("/events")
-def list_events(user: dict = Depends(hod)):
-    return db.query_all(
-        """SELECT e.id, e.title, e.scope, e.event_type, e.venue, e.starts_at,
-                  e.ends_at, e.speaker, e.is_published,
-                  (SELECT count(*) FROM event_registrations r WHERE r.event_id = e.id)
-                      AS registrations
-           FROM events e ORDER BY e.starts_at DESC"""
-    )
-
-
-@router.post("/events", status_code=201)
-def add_event(body: EventIn, user: dict = Depends(hod)):
-    if body.scope not in ("institute", "department"):
-        raise HTTPException(status_code=400, detail="Scope must be 'institute' or 'department'")
-    if body.event_type not in EVENT_TYPES:
-        raise HTTPException(status_code=400, detail=f"Type must be one of: {sorted(EVENT_TYPES)}")
-    if body.ends_at and body.ends_at < body.starts_at:
-        raise HTTPException(status_code=400, detail="The event cannot end before it starts")
-
-    dept = db.query_one("SELECT id FROM department WHERE code = 'CSE'")
-    row = db.execute(
-        """INSERT INTO events
-               (department_id, scope, event_type, title, description, venue,
-                starts_at, ends_at, organiser, speaker, contact_person,
-                contact_number, registration_link, poster_url, max_participants,
-                is_published, created_by)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-           RETURNING id, title, scope, starts_at, venue, registration_link""",
-        (dept["id"] if dept else None, body.scope, body.event_type, body.title,
-         body.description, body.venue, body.starts_at, body.ends_at, body.organiser,
-         body.speaker, body.contact_person, body.contact_number, body.registration_link,
-         body.poster_url, body.max_participants, body.publish_now, user["id"]),
-    )
-
-    queue_message(f"Event: {body.title}", draft_event_message(row), "event", row["id"])
-    return {"id": row["id"], "draft_queued": True}
 
 
 # ===========================================================================
 #  5. LMS DOCUMENTS
 # ===========================================================================
 
-DOC_TYPES = {"notes", "assignment", "question_bank", "practical_manual",
-             "circular", "syllabus", "timetable", "other"}
-
-
-@router.get("/subjects")
-def list_subjects(user: dict = Depends(hod)):
-    """Feeds the subject picker on the upload form."""
-    return db.query_all(
-        """SELECT s.id, s.code, s.name, s.semester, c.short_name AS course
-           FROM subjects s JOIN courses c ON c.id = s.course_id
-           ORDER BY s.semester NULLS LAST, s.name"""
-    )
-
-
-@router.get("/lms")
-def list_lms(user: dict = Depends(hod)):
-    return db.query_all(
-        """SELECT l.id, l.title, l.doc_type, l.semester, l.file_size_kb,
-                  l.is_indexed, l.uploaded_at, l.download_count,
-                  s.name AS subject_name, u.name AS uploaded_by_name
-           FROM lms_documents l
-           LEFT JOIN subjects s ON s.id = l.subject_id
-           JOIN users u ON u.id = l.uploaded_by
-           ORDER BY l.uploaded_at DESC"""
-    )
-
-
-@router.post("/lms", status_code=201)
-def upload_lms(
-    file: UploadFile = File(...),
-    title: str = Form(...),
-    doc_type: str = Form("notes"),
-    subject_id: int | None = Form(None),
-    semester: int | None = Form(None),
-    description: str | None = Form(None),
-    user: dict = Depends(hod),
-):
-    if doc_type not in DOC_TYPES:
-        raise HTTPException(status_code=400, detail=f"Type must be one of: {sorted(DOC_TYPES)}")
-
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if ext not in ALLOWED_EXT:
-        raise HTTPException(
-            status_code=400, detail=f"File type {ext or 'unknown'} is not allowed"
-        )
-
-    safe = f"{datetime.now():%Y%m%d%H%M%S}_{os.path.basename(file.filename or 'upload')}"
-    path = os.path.join(UPLOAD_DIR, safe)
-    with open(path, "wb") as out:
-        shutil.copyfileobj(file.file, out)
-
-    size_kb = os.path.getsize(path) // 1024
-    if size_kb > MAX_UPLOAD_MB * 1024:
-        os.remove(path)
-        raise HTTPException(status_code=413, detail=f"File exceeds {MAX_UPLOAD_MB} MB")
-
-    row = db.execute(
-        """INSERT INTO lms_documents
-               (subject_id, uploaded_by, title, doc_type, description,
-                file_path, file_type, file_size_kb, semester)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-        (subject_id, user["id"], title, doc_type, description,
-         path, ext.lstrip("."), size_kb, semester),
-    )
-    return {"id": row["id"], "filename": safe, "size_kb": size_kb}
-
-
-@router.delete("/lms/{doc_id}")
-def delete_lms(doc_id: int, user: dict = Depends(hod)):
-    row = db.execute("DELETE FROM lms_documents WHERE id = %s RETURNING file_path", (doc_id,))
-    if not row:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if row["file_path"] and os.path.exists(row["file_path"]):
-        os.remove(row["file_path"])
-    return {"ok": True}
 
 
 # ===========================================================================
-#  6. FACULTY DIRECTORY
+#  6. AI KNOWLEDGE BASE
 # ===========================================================================
 
-@router.get("/faculty")
-def list_faculty(user: dict = Depends(hod)):
-    return db.query_all("SELECT * FROM v_faculty_directory ORDER BY is_hod DESC, name")
+@router.post("/knowledge-base/rebuild")
+def rebuild_knowledge_base(user: dict = Depends(hod)):
+    """One-click full rebuild of the AI agent's knowledge base from live
+    database rows.
+
+    Achievements and events already sync the instant they are approved
+    (see kb_sync.py, wired into /approvals/{id}/approve above). This covers
+    everything that has no such hook: department vision/mission/about,
+    faculty profile edits, labs, subjects, announcements. Use it after
+    editing any of those, or any time you want to be certain the AI agent
+    is fully caught up with the live database.
+    """
+    items = public_knowledge()["items"]
+    result = kb_rebuild.rebuild(items)
+    return {"ok": True, **result}
 
 
-@router.get("/faculty/{faculty_id}")
-def faculty_detail(faculty_id: int, user: dict = Depends(hod)):
-    row = db.query_one(
-        """SELECT f.id, u.name, u.email, u.mobile, f.designation, f.qualification,
-                  f.specialization, f.research_areas, f.experience_years,
-                  f.office_location, f.available_hours, f.is_hod, f.date_of_joining
-           FROM faculty f JOIN users u ON u.id = f.user_id WHERE f.id = %s""",
-        (faculty_id,),
-    )
-    if not row:
-        raise HTTPException(status_code=404, detail="Faculty member not found")
-
-    row["achievements"] = db.query_all(
-        "SELECT id, title, category, venue, impact_factor, achieved_on "
-        "FROM faculty_achievements WHERE faculty_id = %s ORDER BY achieved_on DESC NULLS LAST",
-        (faculty_id,),
-    )
-    row["scholars"] = db.query_all(
-        "SELECT name, topic, status FROM research_scholars WHERE supervisor_id = %s",
-        (faculty_id,),
-    )
-    row["subjects"] = db.query_all(
-        "SELECT code, name, semester FROM subjects WHERE faculty_id = %s ORDER BY semester",
-        (faculty_id,),
-    )
-    return row
+@router.get("/knowledge-base/status")
+def knowledge_base_status(user: dict = Depends(hod)):
+    """Current size of the AI knowledge base, for the dashboard to display
+    next to the rebuild button."""
+    docs = db.query_one("SELECT count(*) AS c FROM kb_documents")["c"]
+    chunks = db.query_one("SELECT count(*) AS c FROM kb_chunks")["c"]
+    return {"documents": docs, "chunks": chunks}
 
 
 # ===========================================================================

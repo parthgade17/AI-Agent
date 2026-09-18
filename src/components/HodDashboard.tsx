@@ -1,22 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { hodApi } from '../api'
-import type {
-  Draft, EventRow, FacultyRow, HodProfile, HodStats,
-  LmsRow, Session, StudentOption, SubjectOption,
-} from '../api'
+import type { Draft, HodProfile, HodStats, Session } from '../api'
 import './HodDashboard.css'
 import AiChat from './AiChat'
 
-type Tab = 'dashboard' | 'profile' | 'approvals' | 'achievements' | 'events' | 'lms' | 'faculty' | 'ai-agent'
+type Tab = 'dashboard' | 'profile' | 'approvals' | 'ai-agent'
 
-const TABS: { id: Tab; label: string }[] = [
+const TABS: { id: Tab; la bel: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'profile', label: 'My Profile' },
   { id: 'approvals', label: 'Message Approvals' },
-  { id: 'achievements', label: 'Add Achievement' },
-  { id: 'events', label: 'Add Event' },
-  { id: 'lms', label: 'LMS Documents' },
-  { id: 'faculty', label: 'Faculty' },
   { id: 'ai-agent', label: 'AI Agent' },
 ]
 
@@ -315,427 +308,6 @@ function ApprovalsPanel({ token }: { token: string }) {
 
 /* -------------------------------------------------------- 3. ACHIEVEMENTS */
 
-const CATEGORIES = ['hackathon', 'competition', 'coding', 'sports', 'research',
-  'certification', 'internship', 'placement', 'entrepreneurship', 'academic', 'other']
-
-function AchievementPanel({ token }: { token: string }) {
-  const [students, setStudents] = useState<StudentOption[]>([])
-  const [f, setF] = useState({
-    student_id: '', title: '', category: 'hackathon', event_name: '', organiser: '',
-    location: '', position: '', prize_amount: '', achieved_on: '', description: '',
-  })
-  const [msg, setMsg] = useState({ kind: 'ok' as 'ok' | 'err', text: '' })
-  const [busy, setBusy] = useState(false)
-
-  useEffect(() => {
-    hodApi.students(token).then(setStudents).catch(() => undefined)
-  }, [token])
-
-  async function submit() {
-    if (!f.student_id || f.title.trim().length < 3) {
-      setMsg({ kind: 'err', text: 'Select a student and enter a title.' })
-      return
-    }
-    setBusy(true)
-    try {
-      await hodApi.addAchievement(token, {
-        ...f,
-        student_id: Number(f.student_id),
-        prize_amount: f.prize_amount ? Number(f.prize_amount) : null,
-        achieved_on: f.achieved_on || null,
-      })
-      setMsg({ kind: 'ok', text: 'Achievement saved. A draft announcement is waiting in Message Approvals.' })
-      setF({ ...f, title: '', event_name: '', organiser: '', location: '', position: '', prize_amount: '', description: '' })
-    } catch (e) {
-      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not save' })
-    }
-    setBusy(false)
-  }
-
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setF({ ...f, [k]: e.target.value })
-
-  return (
-    <div className="hod-form">
-      <Banner kind={msg.kind} text={msg.text} />
-
-      <div className="hod-grid-2">
-        <div className="hod-field">
-          <label>Student</label>
-          <select value={f.student_id} onChange={set('student_id')}>
-            <option value="">Select a student…</option>
-            {students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}{s.roll_no ? ` — ${s.roll_no}` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="hod-field">
-          <label>Category</label>
-          <select value={f.category} onChange={set('category')}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="hod-field">
-        <label>Achievement title</label>
-        <input value={f.title} onChange={set('title')}
-               placeholder="First Runner-Up, TechDeviathon 2026" />
-      </div>
-
-      <div className="hod-grid-2">
-        <div className="hod-field">
-          <label>Event name</label>
-          <input value={f.event_name} onChange={set('event_name')} />
-        </div>
-        <div className="hod-field">
-          <label>Organiser</label>
-          <input value={f.organiser} onChange={set('organiser')} />
-        </div>
-        <div className="hod-field">
-          <label>Position</label>
-          <input value={f.position} onChange={set('position')} placeholder="First Prize" />
-        </div>
-        <div className="hod-field">
-          <label>Prize amount (Rs.)</label>
-          <input value={f.prize_amount} onChange={set('prize_amount')} inputMode="numeric" />
-        </div>
-        <div className="hod-field">
-          <label>Location</label>
-          <input value={f.location} onChange={set('location')} />
-        </div>
-        <div className="hod-field">
-          <label>Date</label>
-          <input type="date" value={f.achieved_on} onChange={set('achieved_on')} />
-        </div>
-      </div>
-
-      <div className="hod-field">
-        <label>Description</label>
-        <textarea rows={3} value={f.description} onChange={set('description')} />
-      </div>
-
-      <button className="hod-btn" onClick={submit} disabled={busy}>
-        {busy ? 'Saving…' : 'Save achievement'}
-      </button>
-    </div>
-  )
-}
-
-/* --------------------------------------------------------------- 4. EVENTS */
-
-const EVENT_TYPES = ['workshop', 'seminar', 'guest_lecture', 'competition', 'hackathon',
-  'industrial_visit', 'cultural', 'sports', 'exhibition', 'other']
-
-function EventsPanel({ token }: { token: string }) {
-  const [events, setEvents] = useState<EventRow[]>([])
-  const [f, setF] = useState({
-    title: '', scope: 'department', event_type: 'workshop', venue: '',
-    starts_at: '', ends_at: '', speaker: '', organiser: '',
-    registration_link: '', description: '',
-  })
-  const [msg, setMsg] = useState({ kind: 'ok' as 'ok' | 'err', text: '' })
-  const [busy, setBusy] = useState(false)
-
-  const load = useCallback(() => {
-    hodApi.events(token).then(setEvents).catch(() => undefined)
-  }, [token])
-  useEffect(load, [load])
-
-  async function submit() {
-    if (f.title.trim().length < 3 || !f.starts_at) {
-      setMsg({ kind: 'err', text: 'Enter a title and a start date and time.' })
-      return
-    }
-    setBusy(true)
-    try {
-      await hodApi.addEvent(token, { ...f, ends_at: f.ends_at || null })
-      setMsg({ kind: 'ok', text: 'Event saved. A draft announcement is waiting in Message Approvals.' })
-      setF({ ...f, title: '', venue: '', starts_at: '', ends_at: '', speaker: '', registration_link: '', description: '' })
-      load()
-    } catch (e) {
-      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not save' })
-    }
-    setBusy(false)
-  }
-
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setF({ ...f, [k]: e.target.value })
-
-  return (
-    <div>
-      <Banner kind={msg.kind} text={msg.text} />
-
-      <div className="hod-form">
-        <div className="hod-field">
-          <label>Event level</label>
-          <div className="hod-scope">
-            <button className={f.scope === 'institute' ? 'active' : ''}
-                    onClick={() => setF({ ...f, scope: 'institute' })}>
-              College level
-              <span>Open to the whole university</span>
-            </button>
-            <button className={f.scope === 'department' ? 'active' : ''}
-                    onClick={() => setF({ ...f, scope: 'department' })}>
-              Department level
-              <span>CSE department only</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="hod-field">
-          <label>Event title</label>
-          <input value={f.title} onChange={set('title')}
-                 placeholder="Workshop on Generative AI" />
-        </div>
-
-        <div className="hod-grid-2">
-          <div className="hod-field">
-            <label>Type</label>
-            <select value={f.event_type} onChange={set('event_type')}>
-              {EVENT_TYPES.map((t) => (
-                <option key={t} value={t}>{t.replace('_', ' ')}</option>
-              ))}
-            </select>
-          </div>
-          <div className="hod-field">
-            <label>Venue</label>
-            <input value={f.venue} onChange={set('venue')} placeholder="Seminar Hall" />
-          </div>
-          <div className="hod-field">
-            <label>Starts at</label>
-            <input type="datetime-local" value={f.starts_at} onChange={set('starts_at')} />
-          </div>
-          <div className="hod-field">
-            <label>Ends at</label>
-            <input type="datetime-local" value={f.ends_at} onChange={set('ends_at')} />
-          </div>
-          <div className="hod-field">
-            <label>Speaker</label>
-            <input value={f.speaker} onChange={set('speaker')} />
-          </div>
-          <div className="hod-field">
-            <label>Organiser</label>
-            <input value={f.organiser} onChange={set('organiser')} />
-          </div>
-        </div>
-
-        <div className="hod-field">
-          <label>Registration link</label>
-          <input value={f.registration_link} onChange={set('registration_link')} />
-        </div>
-
-        <div className="hod-field">
-          <label>Description</label>
-          <textarea rows={3} value={f.description} onChange={set('description')} />
-        </div>
-
-        <button className="hod-btn" onClick={submit} disabled={busy}>
-          {busy ? 'Saving…' : 'Save event'}
-        </button>
-      </div>
-
-      <h4 className="hod-subhead">All events ({events.length})</h4>
-      <table className="hod-table">
-        <thead>
-          <tr><th>Title</th><th>Level</th><th>Starts</th><th>Venue</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {events.map((e) => (
-            <tr key={e.id}>
-              <td>{e.title}</td>
-              <td><span className={`hod-tag hod-tag-${e.scope}`}>
-                {e.scope === 'institute' ? 'College' : 'Department'}
-              </span></td>
-              <td>{new Date(e.starts_at).toLocaleString()}</td>
-              <td>{e.venue || '—'}</td>
-              <td>{e.is_published
-                ? <span className="hod-pill hod-pill-ok">Published</span>
-                : <span className="hod-pill">Draft</span>}</td>
-            </tr>
-          ))}
-          {!events.length && (
-            <tr><td colSpan={5} className="hod-muted">No events yet.</td></tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ 5. LMS */
-
-const DOC_TYPES = ['notes', 'assignment', 'question_bank', 'practical_manual',
-  'circular', 'syllabus', 'timetable', 'other']
-
-function LmsPanel({ token }: { token: string }) {
-  const [docs, setDocs] = useState<LmsRow[]>([])
-  const [subjects, setSubjects] = useState<SubjectOption[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [f, setF] = useState({ title: '', doc_type: 'notes', subject_id: '', semester: '', description: '' })
-  const [msg, setMsg] = useState({ kind: 'ok' as 'ok' | 'err', text: '' })
-  const [busy, setBusy] = useState(false)
-
-  const load = useCallback(() => {
-    hodApi.lms(token).then(setDocs).catch(() => undefined)
-    hodApi.subjects(token).then(setSubjects).catch(() => undefined)
-  }, [token])
-  useEffect(load, [load])
-
-  async function upload() {
-    if (!file || !f.title.trim()) {
-      setMsg({ kind: 'err', text: 'Choose a file and enter a title.' })
-      return
-    }
-    setBusy(true)
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('title', f.title)
-      fd.append('doc_type', f.doc_type)
-      if (f.subject_id) fd.append('subject_id', f.subject_id)
-      if (f.semester) fd.append('semester', f.semester)
-      if (f.description) fd.append('description', f.description)
-      await hodApi.uploadLms(token, fd)
-      setMsg({ kind: 'ok', text: 'Document uploaded.' })
-      setF({ ...f, title: '', description: '' })
-      setFile(null)
-      load()
-    } catch (e) {
-      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Upload failed' })
-    }
-    setBusy(false)
-  }
-
-  async function remove(id: number) {
-    try { await hodApi.deleteLms(token, id); load() }
-    catch (e) { setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Delete failed' }) }
-  }
-
-  return (
-    <div>
-      <Banner kind={msg.kind} text={msg.text} />
-
-      <div className="hod-form">
-        <div className="hod-field">
-          <label>File</label>
-          <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                 accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip" />
-          <span className="hod-muted hod-small">PDF, Word, PowerPoint, Excel, text or zip. Up to 25 MB.</span>
-        </div>
-
-        <div className="hod-field">
-          <label>Title</label>
-          <input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })}
-                 placeholder="DBMS Unit 3 Notes" />
-        </div>
-
-        <div className="hod-grid-3">
-          <div className="hod-field">
-            <label>Document type</label>
-            <select value={f.doc_type} onChange={(e) => setF({ ...f, doc_type: e.target.value })}>
-              {DOC_TYPES.map((d) => <option key={d} value={d}>{d.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-          <div className="hod-field">
-            <label>Subject</label>
-            <select value={f.subject_id} onChange={(e) => setF({ ...f, subject_id: e.target.value })}>
-              <option value="">Not subject-specific</option>
-              {subjects.map((s) => <option key={s.id} value={s.id}>{s.code} — {s.name}</option>)}
-            </select>
-          </div>
-          <div className="hod-field">
-            <label>Semester</label>
-            <select value={f.semester} onChange={(e) => setF({ ...f, semester: e.target.value })}>
-              <option value="">—</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <button className="hod-btn" onClick={upload} disabled={busy}>
-          {busy ? 'Uploading…' : 'Upload document'}
-        </button>
-      </div>
-
-      <h4 className="hod-subhead">Uploaded documents ({docs.length})</h4>
-      <table className="hod-table">
-        <thead>
-          <tr><th>Title</th><th>Type</th><th>Subject</th><th>Size</th><th>Indexed</th><th></th></tr>
-        </thead>
-        <tbody>
-          {docs.map((d) => (
-            <tr key={d.id}>
-              <td>{d.title}</td>
-              <td>{d.doc_type.replace('_', ' ')}</td>
-              <td>{d.subject_name || '—'}</td>
-              <td>{d.file_size_kb ? `${d.file_size_kb} KB` : '—'}</td>
-              <td>{d.is_indexed
-                ? <span className="hod-pill hod-pill-ok">In knowledge base</span>
-                : <span className="hod-pill">Not indexed</span>}</td>
-              <td><button className="hod-link-danger" onClick={() => remove(d.id)}>Delete</button></td>
-            </tr>
-          ))}
-          {!docs.length && <tr><td colSpan={6} className="hod-muted">No documents yet.</td></tr>}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-/* -------------------------------------------------------------- 6. FACULTY */
-
-function FacultyPanel({ token }: { token: string }) {
-  const [list, setList] = useState<FacultyRow[]>([])
-  const [open, setOpen] = useState<number | null>(null)
-
-  useEffect(() => { hodApi.faculty(token).then(setList).catch(() => undefined) }, [token])
-
-  return (
-    <div>
-      <p className="hod-muted hod-small hod-note">{list.length} faculty members in the department.</p>
-      <div className="hod-faculty-grid">
-        {list.map((f) => (
-          <div className={`hod-faculty-card ${open === f.id ? 'open' : ''}`} key={f.id}
-               onClick={() => setOpen(open === f.id ? null : f.id)}>
-            <div className="hod-faculty-head">
-              <div className="hod-avatar hod-avatar-sm">
-                {f.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
-              </div>
-              <div>
-                <strong>{f.name}</strong>
-                {f.is_hod && <span className="hod-tag hod-tag-hod">HOD</span>}
-                <p className="hod-muted hod-small">{f.designation || '—'}</p>
-              </div>
-            </div>
-
-            <div className="hod-faculty-stats">
-              <span>{f.achievement_count} publications</span>
-              <span>{f.scholars_guiding} scholars</span>
-              {f.experience_years != null && <span>{f.experience_years} yrs</span>}
-            </div>
-
-            {open === f.id && (
-              <div className="hod-faculty-detail">
-                <div><span>Email</span><p>{f.email}</p></div>
-                {f.mobile && <div><span>Mobile</span><p>{f.mobile}</p></div>}
-                <div><span>Qualification</span><p>{f.qualification || '—'}</p></div>
-                <div><span>Specialization</span><p>{f.specialization || '—'}</p></div>
-                <div><span>Research areas</span><p>{f.research_areas || '—'}</p></div>
-                <div><span>Office</span><p>{f.office_location || '—'}</p></div>
-                <div><span>Available</span><p>{f.available_hours || '—'}</p></div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------- SHELL */
 
 export default function HodDashboard({ session, onClose }: { session: Session; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>('dashboard')
@@ -848,10 +420,8 @@ export default function HodDashboard({ session, onClose }: { session: Session; o
               </div>
               <div className="hod-quick-actions">
                 <button onClick={() => setTab('approvals')}>Review approvals</button>
-                <button onClick={() => setTab('achievements')}>Add achievement</button>
-                <button onClick={() => setTab('events')}>Add event</button>
-                <button onClick={() => setTab('lms')}>Upload LMS document</button>
-                <button className="hod-primary-button" onClick={() => setTab('faculty')}>View faculty</button>
+                <button onClick={() => setTab('profile')}>My profile</button>
+                <button className="hod-primary-button" onClick={() => setTab('ai-agent')}>Ask the AI agent</button>
               </div>
             </div>
 
@@ -887,53 +457,17 @@ export default function HodDashboard({ session, onClose }: { session: Session; o
         {/* ACHIEVEMENTS */}
         {/* ================================================= */}
 
-        {tab === 'achievements' && (
-          <section className="hod-content">
-            <div className="hod-card hod-card-achievements">
-              <h2>Add Student Achievement</h2>
-              <AchievementPanel token={session.token} />
-            </div>
-          </section>
-        )}
-
         {/* ================================================= */}
         {/* EVENTS */}
         {/* ================================================= */}
-
-        {tab === 'events' && (
-          <section className="hod-content">
-            <div className="hod-card hod-card-events">
-              <h2>Add Event</h2>
-              <EventsPanel token={session.token} />
-            </div>
-          </section>
-        )}
 
         {/* ================================================= */}
         {/* LMS */}
         {/* ================================================= */}
 
-        {tab === 'lms' && (
-          <section className="hod-content">
-            <div className="hod-card hod-card-lms">
-              <h2>LMS Documents</h2>
-              <LmsPanel token={session.token} />
-            </div>
-          </section>
-        )}
-
         {/* ================================================= */}
         {/* FACULTY */}
         {/* ================================================= */}
-
-        {tab === 'faculty' && (
-          <section className="hod-content">
-            <div className="hod-card hod-card-faculty">
-              <h2>Faculty</h2>
-              <FacultyPanel token={session.token} />
-            </div>
-          </section>
-        )}
 
         {/* ================================================= */}
         {/* AI AGENT */}
@@ -956,6 +490,10 @@ export default function HodDashboard({ session, onClose }: { session: Session; o
             </div>
           </section>
         )}
+
+        {/* ================================================= */}
+        {/* STUDENT PERFORMANCE */}
+        {/* ================================================= */}
 
       </main>
     </div>

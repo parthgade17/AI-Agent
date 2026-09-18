@@ -452,6 +452,53 @@ def log_exchange(user_id, conversation_id, question, answer, hits,
     return conversation_id
 
 
+# ------------------------------------------------------- auto support ticket
+
+def maybe_create_support_ticket(user_id: int | None, role: str, question: str) -> int | None:
+    """When a STUDENT's question goes unanswered, auto-open a ticket instead
+    of just logging a failure -- using the from_ai flag student_issues
+    already has for exactly this. Only fires for students (a faculty/admin
+    unanswered query is a knowledge-base gap to fix, not a personal issue).
+    Returns the new student_issues.id, or None if no ticket was created.
+    """
+    if not user_id or (role or "student").lower() != "student":
+        return None
+
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            # Don't spam duplicate tickets if the same question is asked
+            # again while an earlier one is still open.
+            cur.execute(
+                """SELECT id FROM student_issues
+                    WHERE raised_by = %s AND from_ai = TRUE
+                      AND title = %s AND status IN ('open', 'in_progress')""",
+                (user_id, question[:200]),
+            )
+            existing = cur.fetchone()
+            if existing:
+                return existing[0]
+
+            cur.execute(
+                """INSERT INTO student_issues
+                       (raised_by, title, description, category, priority, from_ai)
+                   VALUES (%s, %s, %s, 'other', 'low', TRUE)
+                   RETURNING id""",
+                (user_id, question[:200],
+                 f"Auto-opened: the AI assistant could not answer this question from "
+                 f"the department knowledge base. Original question: {question}"),
+            )
+            issue_id = cur.fetchone()[0]
+        conn.commit()
+        return issue_id
+    except Exception as e:
+        conn.rollback()
+        print(f"[rag_engine] auto-ticket creation failed: {e}")
+        return None
+    finally:
+        conn.close()
+
+
 # -------------------------------------------------------------------- entry
 
 def generate_answer(question: str, role: str = "student",
@@ -470,6 +517,9 @@ def generate_answer(question: str, role: str = "student",
         # matches before the model ever saw them.
         answered = REFUSAL.lower()[:24] not in answer.lower()
         section = hits[0]["section"] if answered else None
+
+    if not answered:
+        maybe_create_support_ticket(user_id, role, question)
 
     latency_ms = int((time.perf_counter() - started) * 1000)
 
