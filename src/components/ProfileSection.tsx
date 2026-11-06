@@ -12,7 +12,11 @@ interface StudentProfile {
   division: string
 }
 
-function ProfileSection() {
+interface ProfileSectionProps {
+  token?: string
+}
+
+function ProfileSection({ token: _token }: ProfileSectionProps = {}) {
   const [isEditing, setIsEditing] = useState(false)
 
   const [profile, setProfile] = useState<StudentProfile>({

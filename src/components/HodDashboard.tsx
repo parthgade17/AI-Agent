@@ -6,7 +6,7 @@ import AiChat from './AiChat'
 
 type Tab = 'dashboard' | 'profile' | 'approvals' | 'ai-agent'
 
-const TABS: { id: Tab; la bel: string }[] = [
+const TABS: { id: Tab; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'profile', label: 'My Profile' },
   { id: 'approvals', label: 'Message Approvals' },

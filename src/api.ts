@@ -338,6 +338,63 @@ export interface AnnouncementRow {
   published_at: string
 }
 
+export interface LmsDocument {
+  id: number
+  title: string
+  doc_type: string
+  semester?: number | null
+  unit_number?: number | null
+  file_type?: string | null
+  file_size_kb?: number | null
+  uploaded_at?: string
+  subject_name?: string
+  uploaded_by_name?: string
+  download_count?: number
+  description?: string | null
+}
+
+export interface StudentSubject {
+  id: number
+  code: string
+  name: string
+  semester?: number | null
+  credits?: number | null
+  subject_type?: string | null
+  faculty_name?: string | null
+}
+
+export interface StudentLms {
+  current_semester: number | null
+  current_year: number | null
+  subjects: StudentSubject[]
+  documents: LmsDocument[]
+}
+
+export const lmsFiles = {
+  download: async (token: string, docId: number, filename: string) => {
+    const res = await fetch(`${API_BASE}/api/lms/${docId}/download`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Download failed')
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    window.URL.revokeObjectURL(url)
+  },
+  open: async (token: string, docId: number) => {
+    const res = await fetch(`${API_BASE}/api/lms/${docId}/view`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Could not open file')
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    window.open(url, '_blank')
+  },
+}
+
 export const studentApi = {
   profile:     (t: string) => studentRequest<StudentProfileData>('/profile', t),
   saveProfile: (t: string, data: Record<string, unknown>) =>
@@ -370,6 +427,7 @@ export const studentApi = {
 
   events:      (t: string) => studentRequest<PublicEvent[]>('/events', t),
   announcements: (t: string) => studentRequest<AnnouncementRow[]>('/announcements', t),
+  lms:         (t: string) => studentRequest<StudentLms>('/lms', t),
 }
 
 /* ------------------------------------------------------------ FACULTY API */

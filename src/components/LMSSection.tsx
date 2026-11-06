@@ -75,7 +75,7 @@ function LMSSection({ token }: { token: string }) {
 
   const visible = filter === 'all' ? docs : docs.filter((d) => d.doc_type === filter)
 
-  const presentTypes = Array.from(new Set(docs.map((d) => d.doc_type)))
+  const presentTypes: string[] = Array.from(new Set(docs.map((d: LmsDocument) => d.doc_type)))
 
   return (
     <section className="lms-section">
@@ -208,7 +208,7 @@ function LMSSection({ token }: { token: string }) {
                       TYPE_LABEL[d.doc_type] ?? d.doc_type,
                       d.subject_name,
                       d.unit_number ? `Unit ${d.unit_number}` : null,
-                      sizeLabel(d.file_size_kb),
+                      sizeLabel(d.file_size_kb ?? null),
                       d.file_type?.toUpperCase(),
                     ]
                       .filter(Boolean)
@@ -216,10 +216,10 @@ function LMSSection({ token }: { token: string }) {
                   </span>
                   <span className="lms-file-meta">
                     Uploaded by {d.uploaded_by_name} on{' '}
-                    {new Date(d.uploaded_at).toLocaleDateString('en-IN', {
+                    {d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString('en-IN', {
                       day: 'numeric', month: 'short', year: 'numeric',
-                    })}
-                    {d.download_count > 0 && ` · ${d.download_count} download${d.download_count === 1 ? '' : 's'}`}
+                    }) : null}
+                    {(d.download_count ?? 0) > 0 && ` · ${d.download_count} download${d.download_count === 1 ? '' : 's'}`}
                   </span>
                   {d.description && <span className="lms-file-meta">{d.description}</span>}
                 </div>
